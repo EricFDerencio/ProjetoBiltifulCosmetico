@@ -89,4 +89,11 @@
         }
     }
 
+    public static List<RawMaterial> SearchMaterials(List<RawMaterial> materials,string name)
+    {
+        return materials.FindAll(
+            material => material.Name.Contains(name, StringComparison.OrdinalIgnoreCase)
+        );
+    }
+
 }

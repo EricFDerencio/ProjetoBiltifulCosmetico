@@ -59,6 +59,9 @@ namespace BiltifulCosmetico
 
             try
             {
+                if (CPFExists(customer.CPF))
+                    throw new ArgumentException("CPF já cadastrado.");
+
                 string registro =
                     customer.CPF +
                     customer.Name.PadRight(50, ' ') +
@@ -83,6 +86,23 @@ namespace BiltifulCosmetico
                 Console.WriteLine(e);
                 return false;
             }
+        }
+
+        internal static bool CPFExists(string cpf)
+        {
+            if (!File.Exists(FULLPATH))
+                return false;
+
+            foreach (string linha in File.ReadLines(FULLPATH))
+            {
+                if (linha.Length != 87)
+                    throw new InvalidDataException("Registro inválido no arquivo.");
+
+                if (linha.Substring(0, 11) == cpf)
+                    return true;
+            }
+
+            return false;
         }
     }
 }

@@ -12,7 +12,7 @@ namespace BiltifulCosmetico
         public string Name { get; private set; }
         public DateOnly BirthDate { get; private set; }
         public EGender Gender { get; private set; } = EGender.NotDefined;
-        public DateOnly LastSell { get; private set; } = DateOnly.MinValue;
+        public DateOnly LastPurchase { get; private set; } = DateOnly.MinValue;
         public DateOnly RegisterDate { get; private set; } = DateOnly.FromDateTime(DateTime.Today);
         public ESituation Situation { get; private set; } = ESituation.Active;
 
@@ -35,7 +35,7 @@ namespace BiltifulCosmetico
 
         public void UpdateLastSell()
         {
-            LastSell = DateOnly.FromDateTime(DateTime.Today);
+            LastPurchase = DateOnly.FromDateTime(DateTime.Today);
         }
 
         public bool SetGender(char gender)

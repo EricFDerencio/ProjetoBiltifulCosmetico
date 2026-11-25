@@ -57,7 +57,7 @@ namespace BiltifulCosmetico.Classes
 
         public List<Production> Listar()
         {
-            return lista.;
+            return lista;
         }
     }
 }

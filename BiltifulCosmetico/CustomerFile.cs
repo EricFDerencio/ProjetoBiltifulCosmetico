@@ -77,7 +77,7 @@ namespace BiltifulCosmetico
                 if (registro.Contains('\n') || registro.Contains('\r'))
                     throw new ArgumentException("Registro contém quebra de linha.");
 
-                File.AppendAllText(Path.Combine(PATH, FILE), registro + Environment.NewLine);
+                File.AppendAllText(FULLPATH, registro + Environment.NewLine);
 
                 return true;
             }
@@ -103,6 +103,25 @@ namespace BiltifulCosmetico
             }
 
             return false;
+        }
+
+        public static string? FindCustomerByCPF(string cpf)
+        {
+            cpf = cpf.Replace(".", "").Replace("-", "").Trim().PadLeft(11, '0');
+
+            if (!File.Exists(FULLPATH))
+                return "Arquivo de registro ainda não exites, cadastre um usuário e salve para criá-lo";
+
+            foreach (string registro in File.ReadLines(FULLPATH))
+            {
+                if (registro.Length != 87)
+                    throw new InvalidDataException("Registro inválido no arquivo.");
+
+                if (registro.Substring(0, 11) == cpf)
+                    return registro;
+            }
+
+            return null;
         }
     }
 }

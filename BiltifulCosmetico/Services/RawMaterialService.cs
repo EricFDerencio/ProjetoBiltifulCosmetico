@@ -1,4 +1,6 @@
-﻿public static class RawMaterialService
+﻿using System.Data;
+
+public static class RawMaterialService
 {
 
     public static RawMaterial Create()
@@ -6,7 +8,7 @@
         while (true)
         {
             Console.Write("Digite o nome da matéria-prima: ");
-            string name = Console.ReadLine() ?? "";
+            string name = Console.ReadLine() ?? string.Empty;
 
             try
             {
@@ -26,8 +28,10 @@
 
         var directory = Path.GetDirectoryName(filepath);
 
-        if (!Directory.Exists(directory))
+        if (!Directory.Exists(directory) && directory is not null)
             Directory.CreateDirectory(directory);
+        else
+            throw new ArgumentException("Caminho Invalido");
 
         foreach (RawMaterial material in materials)
         {

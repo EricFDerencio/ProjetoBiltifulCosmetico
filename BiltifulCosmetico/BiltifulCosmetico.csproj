@@ -8,8 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Classes\" />
-    <Folder Include="Dados\" />
+    <Compile Remove="Classes\**" />
+    <Compile Remove="Dados\**" />
+    <EmbeddedResource Remove="Classes\**" />
+    <EmbeddedResource Remove="Dados\**" />
+    <None Remove="Classes\**" />
+    <None Remove="Dados\**" />
   </ItemGroup>
 
 </Project>

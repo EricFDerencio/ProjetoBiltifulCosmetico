@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-public static class RawMaterialService
+﻿public static class RawMaterialService
 {
 
     public static RawMaterial Create()

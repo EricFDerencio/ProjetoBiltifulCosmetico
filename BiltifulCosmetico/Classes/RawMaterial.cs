@@ -24,6 +24,13 @@
         DateOfRegister = dateOfRegister;
         Situation = situation;
     }
+
+    public void ChangeSituation()
+    {
+        Situation = Situation == ESituation.Active
+            ? ESituation.Inactive
+            : ESituation.Active;
+    }
     public string ToFileString()
     {
         return Id +
@@ -32,4 +39,6 @@
                DateOfRegister.ToString("ddMMyyyy") +
                (char)Situation;
     }
+
+
 }

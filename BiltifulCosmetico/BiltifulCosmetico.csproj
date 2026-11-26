@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Classes\**" />
+    <Compile Remove="Dados\**" />
+    <EmbeddedResource Remove="Classes\**" />
+    <EmbeddedResource Remove="Dados\**" />
+    <None Remove="Classes\**" />
     <Compile Remove="Dados\**" />
     <EmbeddedResource Remove="Dados\**" />
     <None Remove="Dados\**" />

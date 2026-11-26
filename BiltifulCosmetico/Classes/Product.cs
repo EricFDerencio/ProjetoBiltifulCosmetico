@@ -1,14 +1,50 @@
-﻿public class Product
+﻿using System.Xml.Linq;
+
+public class Product
 {
-    public string Barcode { get; set; }
+    public string Name { get; private set; }
+    public string Barcode { get; private set; }
+    public decimal SalePrice { get; set; }
 
     public Product(List<Product> products)
     {
+        Name = SetName();
         Barcode = SetGenerateBarcode(products);
-
+        SalePrice = SetSalePrice();
     }
 
-    string SetGenerateBarcode(List<Product> products)
+
+
+    public string SetName()
+    {
+        do
+        {
+            string name;
+            bool IsValid = true;
+            Console.Write("Digite o nome do produto: ");
+            name = Console.ReadLine()!;
+
+            if (!string.IsNullOrEmpty(name) && name.Length <= 20)
+            {
+                for (int i = 0; i < name.Length; i++)
+                {
+                    if (!char.IsLetterOrDigit(name, i))
+                    {
+                        IsValid = false;
+                        break;
+                    }
+                }
+
+                if (IsValid)
+                {
+                    return name;
+                }
+
+            }
+
+        } while (true);
+    }
+    public string SetGenerateBarcode(List<Product> products)
     {
         int[] vector = new int[13];
         //requisito começar com 789
@@ -87,5 +123,32 @@
 
 
     }
+
+    public decimal SetSalePrice()
+    {
+        Console.Write("Digite o valor de venda do produto: ");
+        do
+        {
+            if (decimal.TryParse(Console.ReadLine(), out decimal price) &&  price > 0m && price <= 999.99m)
+            {
+                price = Math.Round(price, 2);
+                if (price == 1000.00m)
+                {
+                    Console.Write("Digite um valor válido de venda do produto: ");
+                    continue;
+                }
+                return price;
+            }
+            else
+            {   
+                Console.Write("Digite um valor válido de venda do produto: ");
+            }
+
+        } while (true);
+
+
+    }
+
+
 
 }

@@ -11,7 +11,61 @@ namespace BiltifulCosmetico
         private static readonly string PATH = Environment.GetEnvironmentVariable("USERPROFILE") + @"\biltiful\";
         private const string FILE = "Clientes.dat";
         private static readonly string FULLPATH = Path.Combine(PATH, FILE);
+        private const string RISKFILE = "Risco.dat";
+        private static readonly string RISKFULLPATH = Path.Combine(PATH, RISKFILE);
 
+        public static bool SaveRisk(string cpf)
+        {
+            try
+            {
+                cpf = Customer.NormalizarCpf(cpf);
+
+                if (!Customer.ValidarDigitoVerificador(cpf))
+                    throw new ArgumentException("CPF inválido");
+
+                if (!FileValidation(RISKFULLPATH))
+                    return false;
+
+                // verificar no merge esse Risk exists que o rodolfo implementou
+                if (IsCpfAtRisk(cpf))
+                    throw new ArgumentException("CPF já cadastrado no arquivo de risco");
+
+                File.AppendAllText(RISKFULLPATH, cpf + Environment.NewLine);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return false;
+            }
+        }
+
+        public static bool RemoveRisk(string cpf)
+        {
+            if (!File.Exists(RISKFULLPATH))
+                return false;
+
+            try
+            {
+                cpf = Customer.NormalizarCpf(cpf);
+
+                List<string> registros = new List<string>(
+                    File.ReadAllLines(RISKFULLPATH));
+
+                if (!registros.Remove(cpf))
+                    return false;
+
+                File.WriteAllLines(RISKFULLPATH, registros);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return false;
+            }
+        }
 
         private static bool PathValidation()
         {
@@ -32,15 +86,15 @@ namespace BiltifulCosmetico
             }
         }
 
-        private static bool FileValidation()
+        private static bool FileValidation(string fullpath)
         {
-            if (File.Exists(FULLPATH))
+            if (File.Exists(fullpath))
                 return true;
             try
             {
                 if (PathValidation())
                 {
-                    File.Open(FULLPATH, FileMode.OpenOrCreate).Close();
+                    File.Open(fullpath, FileMode.OpenOrCreate).Close();
                     return true;
                 }
             }
@@ -99,7 +153,7 @@ namespace BiltifulCosmetico
 
         internal static bool SaveCustomer(Customer customer)
         {
-            if (!FileValidation())
+            if (!FileValidation(FULLPATH))
                 return false;
 
             try
@@ -164,6 +218,25 @@ namespace BiltifulCosmetico
             }
 
             return null;
+        }
+
+        public static string[] ReadActiveCustomers()
+        {
+            if (!File.Exists(FULLPATH))
+                return Array.Empty<string>();
+
+            List<string> registros = new List<string>();
+
+            foreach (string registro in File.ReadLines(FULLPATH))
+            {
+                if (registro.Length != 87)
+                    throw new InvalidDataException("Registro inválido no arquivo.");
+
+                if (registro[86] == 'A')
+                    registros.Add(registro);
+            }
+
+            return registros.ToArray();
         }
     }
 }

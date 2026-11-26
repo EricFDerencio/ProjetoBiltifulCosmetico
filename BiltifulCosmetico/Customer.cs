@@ -23,6 +23,41 @@ namespace BiltifulCosmetico
             SetBirthDate(birth);
             SetGender(gender);
         }
+
+        public Customer(string registro)
+        {
+            if (registro.Length != 87)
+                throw new ArgumentException("Registro inválido.");
+
+            SetCPF(registro.Substring(0, 11));
+            SetName(registro.Substring(11, 50).TrimEnd());
+            SetBirthDate(registro.Substring(61, 8));
+            SetGender(registro[69]);
+
+            LastPurchase = DateOnly.ParseExact(
+                registro.Substring(70, 8),
+                "ddMMyyyy",
+                CultureInfo.InvariantCulture);
+
+            RegisterDate = DateOnly.ParseExact(
+                registro.Substring(78, 8),
+                "ddMMyyyy",
+                CultureInfo.InvariantCulture);
+
+            switch (registro[86])
+            {
+                case 'A':
+                    Activate();
+                    break;
+
+                case 'I':
+                    Deactivate();
+                    break;
+
+                default:
+                    throw new ArgumentException("Situação inválida.");
+            }
+        }
         public void Activate()
         {
             Situation = ESituation.Active;

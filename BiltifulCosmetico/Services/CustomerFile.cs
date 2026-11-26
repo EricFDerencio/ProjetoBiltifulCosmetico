@@ -1,19 +1,44 @@
-﻿using BiltifulCosmetico.Classes;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Globalization;
+using BiltifulCosmetico.Classes;
 
 namespace BiltifulCosmetico.Services
 {
     public static class CustomerFile
     {
-        private static readonly string PATH = Environment.GetEnvironmentVariable("USERPROFILE") + @"\biltiful\";
+        private static readonly string PATH =
+            Environment.GetEnvironmentVariable("USERPROFILE") + @"\biltiful\";
+
         private const string FILE = "Clientes.dat";
         private static readonly string FULLPATH = Path.Combine(PATH, FILE);
+
         private const string RISKFILE = "Risco.dat";
-        private static readonly string RISKFULLPATH = Path.Combine(PATH, RISKFILE);
+        public static readonly string RISKFULLPATH = Path.Combine(PATH, RISKFILE);
+
+        public static bool UpdateLastPurchase(string cpf)
+        {
+            return UpdateLastPurchase(cpf, DateOnly.FromDateTime(DateTime.Today));
+        }
+
+        internal static bool UpdateLastPurchase(string cpf, DateOnly dataVenda)
+        {
+            string? registro = FindCustomerByCPF(cpf);
+
+            if (registro is null)
+                return false;
+
+            const int inicioLastPurchase = 70;
+            const int tamanhoLastPurchase = 8;
+
+            string dataFormatada =
+                dataVenda.ToString("ddMMyyyy", CultureInfo.InvariantCulture);
+
+            string registroAtualizado =
+                registro.Substring(0, inicioLastPurchase) +
+                dataFormatada +
+                registro.Substring(inicioLastPurchase + tamanhoLastPurchase);
+
+            return UpdateCustomer(new Customer(registroAtualizado));
+        }
 
         public static bool SaveRisk(string cpf)
         {
@@ -27,12 +52,12 @@ namespace BiltifulCosmetico.Services
                 if (!FileValidation(RISKFULLPATH))
                     return false;
 
-                // verificar no merge esse Risk exists que o rodolfo implementou
-                if (IsCpfAtRisk(cpf))
+                var risco = new RiskFileRepository();
+
+                if (risco.IsCpfAtRisk(cpf))
                     throw new ArgumentException("CPF já cadastrado no arquivo de risco");
 
                 File.AppendAllText(RISKFULLPATH, cpf + Environment.NewLine);
-
                 return true;
             }
             catch (Exception e)
@@ -58,7 +83,6 @@ namespace BiltifulCosmetico.Services
                     return false;
 
                 File.WriteAllLines(RISKFULLPATH, registros);
-
                 return true;
             }
             catch (Exception e)
@@ -72,7 +96,7 @@ namespace BiltifulCosmetico.Services
         {
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(PATH));
+                Directory.CreateDirectory(PATH);
                 return true;
             }
             catch (DirectoryNotFoundException e)
@@ -91,6 +115,7 @@ namespace BiltifulCosmetico.Services
         {
             if (File.Exists(fullpath))
                 return true;
+
             try
             {
                 if (PathValidation())
@@ -104,6 +129,7 @@ namespace BiltifulCosmetico.Services
                 Console.WriteLine(e);
                 return false;
             }
+
             return false;
         }
 
@@ -136,9 +162,7 @@ namespace BiltifulCosmetico.Services
                     if (registros[i].Substring(0, 11) == customer.CPF)
                     {
                         registros[i] = novoRegistro;
-
                         File.WriteAllLines(FULLPATH, registros);
-
                         return true;
                     }
                 }
@@ -175,7 +199,6 @@ namespace BiltifulCosmetico.Services
                     throw new ArgumentException("Tamanho do registro inválido.");
 
                 File.AppendAllText(FULLPATH, registro + Environment.NewLine);
-
                 return true;
             }
             catch (Exception e)

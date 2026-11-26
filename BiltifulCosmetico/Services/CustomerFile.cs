@@ -1,10 +1,11 @@
-﻿using System;
+﻿using BiltifulCosmetico.Classes;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace BiltifulCosmetico
+namespace BiltifulCosmetico.Services
 {
     public static class CustomerFile
     {

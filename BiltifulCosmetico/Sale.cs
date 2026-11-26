@@ -5,6 +5,7 @@
     public string ClientCPF { get; set; } = string.Empty;
     public List<SaleItem> Items { get; set; } = new();
     public decimal TotalAmount => Items.Sum(item => item.ItemTotal);
+    public decimal? StoredTotalAmount {  get; set; }
 
     public void Validate()
     {

@@ -57,16 +57,28 @@
         );
     }
 
-    public bool DeleteSale(int saleId)
+    public bool DeleteSale(int saleId, SalesFileManager fileManager)
     {
-        Sale? sale = FindSale(saleId);
+        if (fileManager == null)
+        {
+            throw new ArgumentNullException(nameof(fileManager));
+        }
 
-        if (sale == null)
+        // Exclui a venda e seus itens dos arquivos.
+        bool deleted = fileManager.DeleteSale(saleId);
+
+        if (!deleted)
             return false;
 
-        _sales.Remove(sale);
+        // Remove a venda da lista em memória.
+        Sale? sale = FindSale(saleId);
 
-        //reinicia a navegação para evitar uma posição desatualizada.
+        if (sale != null)
+        {
+            _sales.Remove(sale);
+        }
+
+        // Reinicia a navegação.
         _currentIndex = -1;
 
         return true;
@@ -127,5 +139,53 @@
         _currentIndex--;
 
         return _sales[_currentIndex];
+    }
+
+    public void LoadSales(IEnumerable<Sale> sales)
+    {
+        if (sales == null)
+        {
+            throw new ArgumentNullException(
+                nameof(sales),
+                "A lista de vendas não pode ser nula."
+            );
+        }
+
+        List<Sale> loadedSales = sales.ToList();
+
+        if (loadedSales.Any(sale => sale == null))
+        {
+            throw new InvalidDataException(
+                "A lista contém uma venda inválida."
+            );
+        }
+
+        if (loadedSales.GroupBy(sale => sale.SaleId)
+                       .Any(group => group.Count() > 1))
+        {
+            throw new InvalidDataException(
+                "Existem vendas com códigos duplicados."
+            );
+        }
+
+        foreach (Sale sale in loadedSales)
+        {
+            sale.Validate();
+        }
+
+        // Substitui as vendas que estão atualmente em memória.
+        _sales.Clear();
+        _sales.AddRange(loadedSales);
+
+        // Ordena as vendas pelo código.
+        _sales.Sort((a, b) => a.SaleId.CompareTo(b.SaleId));
+
+        // Define o próximo código disponível.
+        _nextSaleId = _sales.Count == 0
+            ? 1
+            : _sales.Max(sale => sale.SaleId) + 1;
+
+        // Reinicia a navegação.
+        _currentIndex = -1;
     }
 }

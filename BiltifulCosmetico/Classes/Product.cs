@@ -1,5 +1,6 @@
 ﻿using System.Xml.Linq;
-
+using System.Globalization;
+using System.IO;
 public class Product
 {
     public string Barcode { get; private set; }
@@ -185,16 +186,83 @@ public class Product
     public string ToFileString()
     {
         return Barcode + 
-            Name.PadLeft(20) + 
+            Name.PadRight(20) + 
             ((int)(SalePrice * 100)).ToString().PadLeft(5, '0') +
             RegistrationDate.ToString("ddMMyyyy") +
             LastSaleDate.ToString("ddMMyyyy") +
             Status.ToString()[0];
     }
 
-    public List<Product> ReadProdcutsFile(List<Product> productsFile,  string pathfile)
+    internal static bool ValidateFilePath(string filePath, bool createIfMissing = false)
     {
-        return productsFile; //não terminado apenas para dar commit sem erros.
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            Console.WriteLine("O caminho do arquivo não pode ser vazio.");
+            return false;
+        }
+        if (!File.Exists(filePath))
+        {
+            if (createIfMissing)
+            {
+                File.Create(filePath).Close();
+                return true;
+            }
+            Console.WriteLine("O arquivo especificado não existe.");
+            return false;
+        }
+        return true;
+    }
+
+    public static List<Product> ReadProdcutsFile(string pathFile)
+    {
+        List<Product> productsFileList = new List<Product>();
+        
+
+        if (ValidateFilePath(pathFile))
+        {
+            var reader = new StreamReader(pathFile);
+            string line = reader.ReadLine()!;
+            
+            while (line != null)
+            {
+                string barcode, name;
+                decimal salePrice;
+                DateTime registrationDate, lastSaleDate;
+                EStatus status;
+
+            barcode = line.Substring(0, 13);
+            name = line.Substring(13, 20).Trim();
+            salePrice = (decimal.Parse(line.Substring(33, 5))) / 100m;
+            registrationDate = DateTime.ParseExact(line.Substring(38, 8), "ddMMyyyy", CultureInfo.InvariantCulture);
+            lastSaleDate = DateTime.ParseExact(line.Substring(46, 8), "ddMMyyyy", CultureInfo.InvariantCulture);
+                status = line.Substring(54, 1) == "A" ? EStatus.Ativo : EStatus.Inativo;
+
+            Product p = new(barcode, name, salePrice, registrationDate, lastSaleDate, status);
+
+            productsFileList.Add(p);
+            line = reader.ReadLine()!;
+
+            }
+            reader.Close();
+        }
+        
+
+        return productsFileList; 
+    }
+
+    public static void SaveProductsFile(List<Product> productsList, string pathFile)
+    {
+        if (ValidateFilePath(pathFile, true))
+        {
+
+        var writer = new StreamWriter(pathFile);
+        foreach(var item in productsList)
+        {
+            writer.WriteLine(item.ToFileString());
+        }
+        writer.Close();
+
+        }
     }
 
 }

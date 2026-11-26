@@ -20,7 +20,7 @@ public class Product
         Status = EStatus.Ativo;
     }
 
-    public Product(string barcode, string name, decimal salePrice, DateTime registrationDate, DateTime lastSaleDate, EStatus status)
+    private Product(string barcode, string name, decimal salePrice, DateTime registrationDate, DateTime lastSaleDate, EStatus status)
     {
         Name = name;
         Barcode = barcode;
@@ -199,11 +199,17 @@ public class Product
         {
             Console.WriteLine("O caminho do arquivo não pode ser vazio.");
             return false;
-        }
-        if (!File.Exists(filePath))
+        } 
+        else if (!File.Exists(filePath))
         {
             if (createIfMissing)
             {
+                string? directory = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
                 File.Create(filePath).Close();
                 return true;
             }
@@ -221,7 +227,7 @@ public class Product
         if (ValidateFilePath(pathFile))
         {
             var reader = new StreamReader(pathFile);
-            string line = reader.ReadLine()!;
+            string? line = reader.ReadLine();
             
             while (line != null)
             {
@@ -240,7 +246,7 @@ public class Product
             Product p = new(barcode, name, salePrice, registrationDate, lastSaleDate, status);
 
             productsFileList.Add(p);
-            line = reader.ReadLine()!;
+            line = reader.ReadLine();
 
             }
             reader.Close();

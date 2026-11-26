@@ -15,7 +15,7 @@
         }
 
         // validação do código do produto
-        if (string.IsNullOrWhiteSpace(ProductCode) || ProductCode.Length != 13 || ProductCode.StartsWith("789") || !IsNumeric(ProductCode))
+        if (string.IsNullOrWhiteSpace(ProductCode) || ProductCode.Length != 13 || !ProductCode.StartsWith("789") || !IsNumeric(ProductCode))
         {
             throw new ArgumentException("O código do produto deve possuir 13 digitos e iniciar com 789.");
         }
@@ -39,7 +39,7 @@
         }
 
         //validação do total do item
-        if (ItemTotal > 999.99m)
+        if (ItemTotal > 9999.99m)
         {
             throw new ArgumentOutOfRangeException(nameof(ItemTotal), "O total do item não pode ultrapassar R$ 9.999,99.");
         }

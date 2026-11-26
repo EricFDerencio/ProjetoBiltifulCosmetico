@@ -147,67 +147,67 @@ namespace BiltifulCosmetico
             {
                 throw new ArgumentException("CPF não é válido", nameof(cpf));
             }
+        }
 
-            string NormalizarCpf(string cpf)
+        public static string NormalizarCpf(string cpf)
+        {
+            if (cpf == null)
+                throw new ArgumentNullException(nameof(cpf), "CPF não pode ser nulo");
+
+            cpf = cpf.Replace(".", "");
+            cpf = cpf.Replace("-", "");
+            cpf = cpf.Trim();
+
+            if (cpf.Length > 11)
+                throw new ArgumentException("CPF não pode possuir mais de 11 dígitos.", nameof(cpf));
+
+            if (cpf.Length == 0)
+                throw new ArgumentException("CPF não pode estar vazio", nameof(cpf));
+
+
+            for (int i = 0; i < cpf.Length; i++)
             {
-                if (cpf == null)
-                    throw new ArgumentNullException(nameof(cpf), "CPF não pode ser nulo");
-
-                cpf = cpf.Replace(".", "");
-                cpf = cpf.Replace("-", "");
-                cpf = cpf.Trim();
-
-                if (cpf.Length > 11)
-                    throw new ArgumentException("CPF não pode possuir mais de 11 dígitos.", nameof(cpf));
-
-                if (cpf.Length == 0)
-                    throw new ArgumentException("CPF não pode estar vazio", nameof(cpf));
-
-
-                for (int i = 0; i < cpf.Length; i++)
-                {
-                    if (cpf[i] < '0' || cpf[i] > '9')
-                        throw new ArgumentException("CPF contém caracteres inválidos.", nameof(cpf));
-                }
-
-                cpf = cpf.PadLeft(11, '0');
-
-                if (cpf.Distinct().Count() == 1)
-                    throw new ArgumentException("CPF contém todos os dígitos iguais.", nameof(cpf));
-
-                return cpf;
+                if (cpf[i] < '0' || cpf[i] > '9')
+                    throw new ArgumentException("CPF contém caracteres inválidos.", nameof(cpf));
             }
 
-            bool ValidarDigitoVerificador(string cpf)
+            cpf = cpf.PadLeft(11, '0');
+
+            if (cpf.Distinct().Count() == 1)
+                throw new ArgumentException("CPF contém todos os dígitos iguais.", nameof(cpf));
+
+            return cpf;
+        }
+
+        public static bool ValidarDigitoVerificador(string cpf)
+        {
+            for (int quantidadeDigitos = 9; quantidadeDigitos <= 10; quantidadeDigitos++)
             {
-                for (int quantidadeDigitos = 9; quantidadeDigitos <= 10; quantidadeDigitos++)
+                int soma = 0;
+                int peso = quantidadeDigitos + 1;
+
+                for (int i = 0; i < quantidadeDigitos; i++)
                 {
-                    int soma = 0;
-                    int peso = quantidadeDigitos + 1;
+                    int numero = int.Parse(cpf[i].ToString());
 
-                    for (int i = 0; i < quantidadeDigitos; i++)
-                    {
-                        int numero = int.Parse(cpf[i].ToString());
-
-                        soma += numero * peso;
-                        peso--;
-                    }
-
-                    int resto = soma % 11;
-                    int digitoCalculado;
-
-                    if (resto < 2)
-                        digitoCalculado = 0;
-                    else
-                        digitoCalculado = 11 - resto;
-
-                    int digitoOriginal = int.Parse(cpf[quantidadeDigitos].ToString());
-
-                    if (digitoCalculado != digitoOriginal)
-                        return false;
+                    soma += numero * peso;
+                    peso--;
                 }
-                return true;
+
+                int resto = soma % 11;
+                int digitoCalculado;
+
+                if (resto < 2)
+                    digitoCalculado = 0;
+                else
+                    digitoCalculado = 11 - resto;
+
+                int digitoOriginal = int.Parse(cpf[quantidadeDigitos].ToString());
+
+                if (digitoCalculado != digitoOriginal)
+                    return false;
             }
+            return true;
         }
 
         public override string ToString()

@@ -8,9 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Dados\**" />
-    <EmbeddedResource Remove="Dados\**" />
-    <None Remove="Dados\**" />
+    
   </ItemGroup>
 
 </Project>

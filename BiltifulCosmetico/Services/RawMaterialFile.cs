@@ -1,4 +1,4 @@
-﻿public static class RawMaterialService
+﻿public static class RawMaterialFile
 {
 
     public static RawMaterial Create()

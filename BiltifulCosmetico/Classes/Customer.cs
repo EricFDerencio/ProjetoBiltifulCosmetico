@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace BiltifulCosmetico
+namespace BiltifulCosmetico.Classes
 {
     internal class Customer
     {

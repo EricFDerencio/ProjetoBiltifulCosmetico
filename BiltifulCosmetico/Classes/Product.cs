@@ -2,8 +2,8 @@
 
 public class Product
 {
-    public string Name { get; private set; }
     public string Barcode { get; private set; }
+    public string Name { get; private set; }
     public decimal SalePrice { get; private set; }
     public DateTime RegistrationDate { get; private set; }
     public DateTime LastSaleDate {  get; private set; }
@@ -19,35 +19,16 @@ public class Product
         Status = EStatus.Ativo;
     }
 
-    public string SetName()
+    public Product(string barcode, string name, decimal salePrice, DateTime registrationDate, DateTime lastSaleDate, EStatus status)
     {
-        do
-        {
-            string name;
-            bool IsValid = true;
-            Console.Write("Digite o nome do produto: ");
-            name = Console.ReadLine()!;
-
-            if (!string.IsNullOrEmpty(name) && name.Length <= 20)
-            {
-                for (int i = 0; i < name.Length; i++)
-                {
-                    if (!char.IsLetterOrDigit(name, i))
-                    {
-                        IsValid = false;
-                        break;
-                    }
-                }
-
-                if (IsValid)
-                {
-                    return name;
-                }
-
-            }
-
-        } while (true);
+        Name = name;
+        Barcode = barcode;
+        SalePrice = salePrice;
+        RegistrationDate = registrationDate;
+        LastSaleDate = lastSaleDate;
+        Status = status;
     }
+
     public string SetGenerateBarcode(List<Product> products)
     {
         int[] vector = new int[13];
@@ -127,6 +108,35 @@ public class Product
 
 
     }
+    public string SetName()
+    {
+        do
+        {
+            string name;
+            bool IsValid = true;
+            Console.Write("Digite o nome do produto: ");
+            name = Console.ReadLine()!;
+
+            if (!string.IsNullOrEmpty(name) && name.Length <= 20)
+            {
+                for (int i = 0; i < name.Length; i++)
+                {
+                    if (!char.IsLetterOrDigit(name, i))
+                    {
+                        IsValid = false;
+                        break;
+                    }
+                }
+
+                if (IsValid)
+                {
+                    return name;
+                }
+
+            }
+
+        } while (true);
+    }
     public decimal SetSalePrice()
     {
         Console.Write("Digite o valor de venda do produto: ");
@@ -165,13 +175,26 @@ public class Product
             ----- DADOS DO PRODUTO -----
             Cód. de Barras: {Barcode}
             Nome: {Name} 
-            Valor de Venda: {SalePrice.ToString()}
+            Valor de Venda: {SalePrice.ToString("C")}
             Data do Cadastro: {RegistrationDate.ToString("dd/MM/yyyy")}
             Data Última Venda: {LastSaleDate.ToString("dd/MM/yyyy")}
             Status: {Status}
             """;
     }
 
+    public string ToFileString()
+    {
+        return Barcode + 
+            Name.PadLeft(20) + 
+            ((int)(SalePrice * 100)).ToString().PadLeft(5, '0') +
+            RegistrationDate.ToString("ddMMyyyy") +
+            LastSaleDate.ToString("ddMMyyyy") +
+            Status.ToString()[0];
+    }
 
+    public List<Product> ReadProdcutsFile(List<Product> productsFile,  string pathfile)
+    {
+        return productsFile; //não terminado apenas para dar commit sem erros.
+    }
 
 }

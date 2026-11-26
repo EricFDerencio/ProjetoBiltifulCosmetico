@@ -8,9 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Classes\" />
-    <Folder Include="Dados\" />
-    <Folder Include="Utils\" />
+    
   </ItemGroup>
 
 </Project>

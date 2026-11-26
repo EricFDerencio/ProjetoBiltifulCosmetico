@@ -50,12 +50,12 @@
 
     public Supplier(string cnpj, string name, DateOnly openingDate, DateOnly lastPurchase, DateOnly registrationDate, ESituation situation)
     {
-        cnpj = CNPJ;
-        name = CorporateName;
-        openingDate= OpeningDate;             // overload necessario para recuperar objeto dos arquivos
-        lastPurchase = LastPurchase;
-        registrationDate = RegistrationDate;
-        situation = Situation;
+        CNPJ = cnpj;
+        CorporateName = name.TrimStart('0');
+        OpeningDate = openingDate;             // overload necessario para recuperar objeto dos arquivos
+        LastPurchase = lastPurchase;
+        RegistrationDate = registrationDate;
+        Situation = situation;
     }
 
     public static bool ValidateCNPJ(string cnpj)

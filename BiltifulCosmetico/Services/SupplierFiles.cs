@@ -11,8 +11,8 @@
     public SupplierFiles()
     {
         Directory.CreateDirectory(path);
-        string suppliersPath = Path.Combine(path, supplierFile);    // passa os caminhos dos arquivos que desejamos
-        string blockedsPath = Path.Combine(path, blockedSuppliers);
+        suppliersPath = Path.Combine(path, supplierFile);    // passa os caminhos dos arquivos que desejamos
+        blockedsPath = Path.Combine(path, blockedSuppliers);
     }
 
     public Supplier FindCNPJ(string cnpj)   // busca fornecedor pelo cnpj e retorna seus dados (ou null, se nao encontrar)
@@ -115,8 +115,11 @@
             while ((line = reader.ReadLine()) != null)
             {
                 if (line == cnpj)
+                {
                     Console.WriteLine("Fornecedor está bloqueado.");
                     return true;
+                }
+
             }
         }
         return false;

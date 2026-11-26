@@ -48,6 +48,16 @@
         LastPurchase = RegistrationDate; // no momento do cadastro, a data de ultima venda fica = data de registro
     }
 
+    public Supplier(string cnpj, string name, DateOnly openingDate, DateOnly lastPurchase, DateOnly registrationDate, ESituation situation)
+    {
+        cnpj = CNPJ;
+        name = CorporateName;
+        openingDate= OpeningDate;             // overload necessario para recuperar objeto dos arquivos
+        lastPurchase = LastPurchase;
+        registrationDate = RegistrationDate;
+        situation = Situation;
+    }
+
     public static bool ValidateCNPJ(string cnpj)
     {
         int[] weightsConversion = { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 }; //pesos que serão utilizados para o 1° verificador do cnpj

@@ -166,6 +166,16 @@
     {
         Situation = ESituation.Inactive;
     }
+
+    public string ToFileString()
+    {
+        return CNPJ +
+            CorporateName +
+            OpeningDate.ToString("ddMMyyyy") +
+            LastPurchase.ToString("ddMMyyyy") +
+            RegistrationDate.ToString("ddMMyyyy") +
+            (char)Situation;
+    }
 }
 
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿using System;
 using System.Globalization;
 using BiltifulCosmetico.Classes;
@@ -229,3 +230,7 @@ namespace BiltifulCosmetico
         }
     }
 }
+=======
+﻿var date = DateTime.Today.ToString("ddMMyyyy");
+Console.WriteLine(date);
+>>>>>>> f7bbf46b0a605ba8f039884f07a7b8091bce341b

@@ -6,7 +6,6 @@ namespace BiltifulCosmetico.Utils
 {
     internal static class Utils
     {
-        public static string path = @"C:\dev\";
-        public static string file = "producoes.dat";
+        
     }
 }

@@ -4,16 +4,20 @@ public class Product
 {
     public string Name { get; private set; }
     public string Barcode { get; private set; }
-    public decimal SalePrice { get; set; }
+    public decimal SalePrice { get; private set; }
+    public DateTime RegistrationDate { get; private set; }
+    public DateTime LastSaleDate {  get; private set; }
+    public EStatus Status {  get; private set; }
 
     public Product(List<Product> products)
     {
         Name = SetName();
         Barcode = SetGenerateBarcode(products);
         SalePrice = SetSalePrice();
+        RegistrationDate = SetCurrentDate();
+        LastSaleDate = SetCurrentDate();
+        Status = EStatus.Ativo;
     }
-
-
 
     public string SetName()
     {
@@ -123,7 +127,6 @@ public class Product
 
 
     }
-
     public decimal SetSalePrice()
     {
         Console.Write("Digite o valor de venda do produto: ");
@@ -147,6 +150,26 @@ public class Product
         } while (true);
 
 
+    }
+    public DateTime SetCurrentDate()
+    {
+        return DateTime.Today;
+    }
+    public void SetInactive()
+    {
+        Status = EStatus.Inativo;
+    }
+    public override string ToString()
+    {
+        return $"""
+            ----- DADOS DO PRODUTO -----
+            Cód. de Barras: {Barcode}
+            Nome: {Name} 
+            Valor de Venda: {SalePrice.ToString()}
+            Data do Cadastro: {RegistrationDate.ToString("dd/MM/yyyy")}
+            Data Última Venda: {LastSaleDate.ToString("dd/MM/yyyy")}
+            Status: {Status}
+            """;
     }
 
 

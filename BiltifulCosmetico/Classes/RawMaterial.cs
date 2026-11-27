@@ -24,6 +24,17 @@
         DateOfRegister = dateOfRegister;
         Situation = situation;
     }
+    public void ChangeName(string name)
+    {
+        ValidateName(name);
+        Name = name;
+    }
+
+    // será usado pelo módulo de Compra ao registrar um item
+    public void UpdateLastBuy()
+    {
+        LastBuy = DateTime.Today;
+    }
 
     public void ChangeSituation()
     {
@@ -31,6 +42,7 @@
             ? ESituation.Inactive
             : ESituation.Active;
     }
+
     public string ToFileString()
     {
         return Id +
@@ -40,5 +52,12 @@
                (char)Situation;
     }
 
+    private static void ValidateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("O nome é obrigatório.");
 
+        if (name.Length > 20)
+            throw new ArgumentException("O nome deve ter no máximo 20 caracteres.");
+    }
 }

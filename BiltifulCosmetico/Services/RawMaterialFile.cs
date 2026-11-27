@@ -7,13 +7,10 @@ using System.Linq;
 
 public static class RawMaterialFile
 {
-    private static readonly string FilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+    public static readonly string FilePath = Path.Combine(
+        Environment.GetEnvironmentVariable("USERPROFILE") ?? string.Empty,
         "biltiful",
-        "MateriaPrima.dat"
-    );
-
-    private const int RecordLength = 43;
+        "MateriaPrima.dat");
 
     public static RawMaterial Create()
     {
@@ -34,21 +31,16 @@ public static class RawMaterialFile
         }
     }
 
-    public static void SaveRawMaterials(
-        List<RawMaterial> materials,
-        string filepath)
+    public static void SaveRawMaterials(List<RawMaterial> materials, string filepath)
     {
-        ArgumentNullException.ThrowIfNull(materials);
-
-        if (string.IsNullOrWhiteSpace(filepath))
-            throw new ArgumentException("Caminho inválido.", nameof(filepath));
+        List<string> lines = new List<string>();
 
         string? directory = Path.GetDirectoryName(filepath);
 
-        if (!string.IsNullOrWhiteSpace(directory))
-            Directory.CreateDirectory(directory);
+        if (string.IsNullOrEmpty(directory))
+            throw new ArgumentException("Caminho inválido.");
 
-        List<string> lines = new();
+        Directory.CreateDirectory(directory);
 
         foreach (RawMaterial material in materials)
         {
@@ -99,24 +91,15 @@ public static class RawMaterialFile
                 "Situação da matéria-prima inválida."
             );
 
-        ESituation situation = (ESituation)situationCode;
-
-        return new RawMaterial(
-            id,
-            name,
-            lastBuy,
-            dateOfRegister,
-            situation
-        );
+        return new RawMaterial(id, name, lastBuy, dateOfRegister, situation);
     }
 
     public static List<RawMaterial> LoadRawMaterials()
     {
-        List<RawMaterial> materials = new();
-
+        List<RawMaterial> materials = new List<RawMaterial>();
         try
         {
-            if (!File.Exists(FilePath))
+            if (!Utils.ValidateFilePath(FilePath))
                 return materials;
 
             foreach (string line in File.ReadAllLines(FilePath))
@@ -146,9 +129,7 @@ public static class RawMaterialFile
         return materials;
     }
 
-    public static List<RawMaterial> SearchMaterials(
-        List<RawMaterial> materials,
-        string name)
+    public static List<RawMaterial> SearchMaterials(List<RawMaterial> materials, string name)
     {
         ArgumentNullException.ThrowIfNull(materials);
 
@@ -160,6 +141,16 @@ public static class RawMaterialFile
                 name,
                 StringComparison.OrdinalIgnoreCase
             )
+        );
+    }
+
+    public static RawMaterial? FindById(List<RawMaterial> materials, string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+            return null;
+
+        return materials.FirstOrDefault(
+            material => material.Id.Equals(id.Trim(), StringComparison.OrdinalIgnoreCase)
         );
     }
 }

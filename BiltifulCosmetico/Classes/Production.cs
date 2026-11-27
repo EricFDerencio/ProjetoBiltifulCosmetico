@@ -1,8 +1,10 @@
-﻿using System;
+﻿using BiltifulCosmetico.Dados;
+using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Globalization;
 using System.Text;
-using BiltifulCosmetico.Dados;
 
 namespace BiltifulCosmetico.Classes
 {
@@ -11,11 +13,11 @@ namespace BiltifulCosmetico.Classes
         public int Id = 0;
         static int nextId = 0;
         public DateTime ProductionDate { get; set; }
-        public int Product { get; set; }
+        public string Product { get; set; }
         public float Quantity { get; set; }
         public static List<Production> list = SetList();
-        
-        public Production(int p, float q)
+
+        public Production(string p, float q)
         {
             this.Id = setId();
             this.ProductionDate = DateTime.Today;
@@ -30,7 +32,7 @@ namespace BiltifulCosmetico.Classes
             }
         }
 
-        public Production(int id, DateTime date, int prod, float quant)
+        public Production(int id, DateTime date, string prod, float quant)
         {
             this.Id = id;
             this.ProductionDate = date;
@@ -50,11 +52,18 @@ namespace BiltifulCosmetico.Classes
                     aux = reader.ReadLine();
                     if (!string.IsNullOrEmpty(aux))
                     {
-                        string[] partes = aux.Split("-");
-                        int id = int.Parse(partes[1].Trim());
-                        DateTime date = DateTime.Parse(partes[3].Trim().TrimEnd(":"), new CultureInfo("pt-br"));
-                        int prod = int.Parse(partes[5].Trim());
-                        float quan = float.Parse(partes[7].Trim());
+                        string idreader = aux.Substring(0, 4);
+                        int id = int.Parse(idreader.Trim());
+
+                        string datereader = aux.Substring(5, 10);
+                        DateTime date = DateTime.ParseExact(datereader.Trim(), "ddMMyyyy", CultureInfo.InvariantCulture);
+
+                        string prodreader = aux.Substring(15, 13);
+                        string prod = prodreader.Trim();
+
+                        string quantityreader = aux.Substring(31, 5);
+                        float quan = float.Parse(quantityreader.Trim());
+
                         Production p = new(id, date, prod, quan);
                         list.Add(p);
                     }
@@ -78,13 +87,9 @@ namespace BiltifulCosmetico.Classes
                     {
                         if (!string.IsNullOrWhiteSpace(linha))
                         {
-                            string[] partes = linha.Split("-");
+                            string idreader = linha.Substring(0, 5);
 
-                            if (partes.Length > 1 &&
-                                int.TryParse(partes[1].Trim(), out int idLido))
-                            {
-                                nextId = idLido;
-                            }
+                            nextId = int.Parse(idreader.Trim());
                         }
                     }
                 }
@@ -107,32 +112,42 @@ namespace BiltifulCosmetico.Classes
             if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
             {
                 list.Add(p);
-                File.AppendAllText(Dados.ProductionFiles.caminho, "\n" + p.ToString());
+                string register = Id.ToString().PadRight(5, ' ') +
+                    ProductionDate.ToString("ddMMyyyy").PadRight(10, ' ') +
+                    Product.PadRight(20, ' ') +
+                    Quantity.ToString().PadRight(10, ' ');
+
+                File.AppendAllText(Dados.ProductionFiles.caminho, "\n" + register);
             }
         }
 
         public string Localizar(int id)
         {
             Production encontrada = list.Find(p => p.Id == id);
-            if(encontrada == null)
+            if (encontrada == null)
             {
                 return "Produção não encontrada";
             }
             return encontrada.ToString();
         }
-        
+
         public bool Delete(int id)
         {
             Production enc = list.Find(p => p.Id == id);
-            if(enc == null)
+            if (enc == null)
             {
                 return false;
             }
             list.Remove(enc);
+            string register;
             List<string> dados = new List<string>();
-            foreach(var item in list)
+            foreach (var item in list)
             {
-                dados.Add(item.ToString());
+                register = item.Id.ToString().PadRight(5, ' ') +
+                    item.ProductionDate.ToString("ddMMyyyy").PadRight(10, ' ') +
+                    item.Product.PadRight(20, ' ') +
+                    item.Quantity.ToString().PadRight(10, ' ');
+                dados.Add(register);
             }
             File.WriteAllLines(Dados.ProductionFiles.caminho, dados);
             return true;
@@ -140,12 +155,12 @@ namespace BiltifulCosmetico.Classes
 
         public List<Production> Listar()
         {
-            return list; 
+            return list;
         }
 
         public override string ToString()
         {
-            return $""" Id - {this.Id} - Data de produção - {this.ProductionDate}: - Produto - {this.Product} - Quantidade - {this.Quantity} """;
+            return $""" Id - {this.Id:D5} - Data de produção - {this.ProductionDate}: - Produto - {this.Product} - Quantidade - {this.Quantity} """;
         }
     }
 }

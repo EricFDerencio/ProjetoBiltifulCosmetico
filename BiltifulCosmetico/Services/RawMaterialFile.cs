@@ -63,7 +63,7 @@
         return new RawMaterial(id, name, lastBuy, dateOfRegister, situation);
 
     }
-    public static List<RawMaterial> LoadRawMaterials()
+    /*public static List<RawMaterial> LoadRawMaterials()
     {
         string filepath = Environment.GetEnvironmentVariable("USERPROFILE")+ @"\biltiful\MateriaPrima.dat";
 
@@ -87,7 +87,7 @@
             Console.WriteLine($"Ocorreu um erro ao carregar os Materiais: {e.Message}");
             return materials;
         }
-    }
+    }*/
 
     public static List<RawMaterial> SearchMaterials(List<RawMaterial> materials,string name)
     {

@@ -202,7 +202,7 @@ namespace BiltifulCosmetico.Classes
                                 break;
                             }
 
-                        case "5":
+                        /*case "5":
                             {
                                 string[] registros = CustomerFile.ReadAllCustomers();
 
@@ -220,7 +220,7 @@ namespace BiltifulCosmetico.Classes
                                 }
 
                                 break;
-                            }
+                            }*/
 
                         case "6":
                             MenuRisco();

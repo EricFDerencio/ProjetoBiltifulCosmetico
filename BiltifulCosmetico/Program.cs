@@ -1,5 +1,5 @@
-<<<<<<< HEAD
-﻿using System;
+
+using System;
 using System.Globalization;
 using BiltifulCosmetico.Classes;
 using BiltifulCosmetico.Utils;
@@ -93,7 +93,7 @@ namespace BiltifulCosmetico
                 Console.WriteLine("=== CADASTRAR PRODUÇÃO ===");
 
                 Console.Write("Código do produto: ");
-                int produto = int.Parse(Console.ReadLine());
+                string produto = Console.ReadLine();
 
                 Console.Write("Quantidade produzida: ");
                 float quantidade = float.Parse(
@@ -101,7 +101,7 @@ namespace BiltifulCosmetico
                     CultureInfo.InvariantCulture
                 );
 
-                Production nova = new Production(produto, quantidade);
+                Production nova = new Production(produto.ToString(), quantidade);
 
                 nova.Register(nova);
 
@@ -127,7 +127,7 @@ namespace BiltifulCosmetico
         {
             Console.WriteLine("=== PRODUÇÕES CADASTRADAS ===");
 
-            var producoes = new Production(0, 0).Listar();
+            var producoes = new Production("0", 0).Listar();
 
             if (producoes.Count == 0)
             {
@@ -156,7 +156,7 @@ namespace BiltifulCosmetico
 
             try
             {
-                Production teste = new Production(0, 0);
+                Production teste = new Production("0", 0);
                 string resultado = teste.Localizar(id);
 
                 Console.WriteLine();
@@ -180,7 +180,7 @@ namespace BiltifulCosmetico
                 return;
             }
 
-            Production teste = new Production(0, 0);
+            Production teste = new Production("0", 0);
 
             if (teste.Delete(id))
             {
@@ -198,7 +198,7 @@ namespace BiltifulCosmetico
 
             try
             {
-                Production p = new Production(1, 1000.00f);
+                Production p = new Production("1", 1000.00f);
 
                 Console.WriteLine("Produção criada:");
                 Console.WriteLine(p);
@@ -217,7 +217,7 @@ namespace BiltifulCosmetico
 
             try
             {
-                Production p = new Production(99999, DateTime.Today, 1, 10);
+                Production p = new Production(99999, DateTime.Today, "1", 10);
 
                 Console.WriteLine("Produção criada:");
                 Console.WriteLine(p);
@@ -230,7 +230,5 @@ namespace BiltifulCosmetico
         }
     }
 }
-=======
-﻿var date = DateTime.Today.ToString("ddMMyyyy");
-Console.WriteLine(date);
->>>>>>> f7bbf46b0a605ba8f039884f07a7b8091bce341b
+
+

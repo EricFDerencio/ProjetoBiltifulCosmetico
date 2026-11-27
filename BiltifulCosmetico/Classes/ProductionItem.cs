@@ -78,5 +78,23 @@ namespace BiltifulCosmetico.Classes
             return $"Produção {Id:D5} | {ProductionDate:dd/MM/yyyy} | " +
                    $"{RawMaterial.Id} - {RawMaterial.Name} | {RawMaterialQuantity} un.";
         }
+
+        internal static ProductionItem LoadFromRecord(
+    int id,
+    DateOnly productionDate,
+    RawMaterial rawMaterial,
+    int quantity)
+        {
+            ProductionItem item = new ProductionItem
+            {
+                Id = id,
+                ProductionDate = productionDate
+            };
+
+            item.SetRawMaterial(rawMaterial);
+            item.SetRawMaterialQuantity(quantity);
+
+            return item;
+        }
     }
 }

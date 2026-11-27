@@ -1,4 +1,6 @@
 ﻿public class Production
+{
+    internal class Production
     {
         public int Id = 0;
         static int nextId = 0;
@@ -174,3 +176,4 @@
                 """;
         }
     }
+}

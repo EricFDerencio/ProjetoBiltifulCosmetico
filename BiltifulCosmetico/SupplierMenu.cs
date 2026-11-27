@@ -14,12 +14,15 @@
         {
             Console.WriteLine("""
         =============== Menu - Fornecedores ===============
-        1 - Cadastro de novos Fornecedores.
-        2 - Localiza cadastros de Fornecedores.
-        3 - Edita Fornecedores.
-        4 - Bloqueia Fornecedor.
-        5 - Desbloqueia Fornecedor.
-        6 - Verifica status do Fornecedor (bloq./desbloq.).
+        1 - Cadastra Fornecedor.
+        2 - Localizar cadastro de Fornecedor.
+        3 - Editar Fornecedor.
+        4 - Bloquear Fornecedor.
+        5 - Desbloquear Fornecedor.
+        6 - Verificar status do Fornecedor (bloq./desbloq.).
+        7 - Ativar Fornecedor.
+        8 - Inativar Fornecedor.
+        9 - Verificar se o Fornecedor está ativo ou inativo.
         0 - Voltar ao Menu Principal.
         """);
 
@@ -53,6 +56,15 @@
                 case 6:
                     CheckSupplierStatusMenu();
                     break;
+                case 7:
+                    ActivateSupplierMenu();
+                    break;
+                case 8:
+                    InativateSupplierMenu();
+                    break;
+                case 9:
+                    CheckSituationMenu();
+                    break;
                 case 0: return;
                 default:
                     Console.WriteLine("Opção inválida. Digite novamente: ");
@@ -63,13 +75,27 @@
         } while (true);
     }
 
-    public void RegisterSupplierMenu()
+    public void RegisterSupplierMenu() // opcao 1 - registrar fornecedor
     {
         Console.WriteLine("Digite o CNPJ: ");
         string cnpj = Console.ReadLine();
 
+        if (string.IsNullOrWhiteSpace(cnpj))
+        {
+            Console.WriteLine("CNPJ não pode ficar vazio.");
+            return;
+        }
+
+        cnpj = cnpj.ToUpperInvariant();
+
         Console.WriteLine("Digite a razão social: ");
         string corporateName = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(corporateName))
+        {
+            Console.WriteLine("Razão Social não pode ficar vazia.");
+            return;
+        }
 
         Console.WriteLine("Digite a data de abertura do CNPJ (dd/MM/yyyy): ");
         if (!DateOnly.TryParse(Console.ReadLine(), out DateOnly openingDate))
@@ -93,10 +119,18 @@
         }
     }
 
-    public void FindSupplierMenu()
+    public void FindSupplierMenu() // opcao 2 - procurar fornecedor
     {
         Console.WriteLine("Digite o CNPJ que deseja localizar: ");
         string cnpj = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(cnpj))
+        {
+            Console.WriteLine("CNPJ não pode ficar vazio.");
+            return;
+        }
+
+        cnpj = cnpj.ToUpperInvariant();
 
         Supplier findsupplier = supplierFiles.FindCNPJ(cnpj);
 
@@ -116,10 +150,18 @@
 
     }
 
-    public void EditSupplierMenu()
+    public void EditSupplierMenu() // opcao 3 - editar fornecedor
     {
         Console.WriteLine("Digite o CNPJ do fornecedor que deseja editar: ");
         string cnpj = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(cnpj))
+        {
+            Console.WriteLine("CNPJ não pode ficar vazio.");
+            return;
+        }
+
+        cnpj = cnpj.ToUpperInvariant();
 
         Supplier editsupplier = supplierFiles.FindCNPJ(cnpj);
 
@@ -131,6 +173,12 @@
 
         Console.WriteLine("Qual a nova Razão Social?");
         string corporateName = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(corporateName))
+        {
+            Console.WriteLine("Razão Social não pode ficar vazia.");
+            return;
+        }
 
         Console.WriteLine("Digite a nova data de abertura (dd/MM/yyyy): ");
         if (!DateOnly.TryParse(Console.ReadLine(), out DateOnly openingDate))
@@ -165,10 +213,18 @@
 
     }
 
-    public void BlockSupplierMenu()
+    public void BlockSupplierMenu() //opcao 4 - bloq fornecedor
     {
         Console.WriteLine("Digite o CNPJ que deseja bloquear: ");
         string cnpj = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(cnpj))
+        {
+            Console.WriteLine("CNPJ não pode ficar vazio.");
+            return;
+        }
+
+        cnpj = cnpj.ToUpperInvariant();
 
         Supplier supplier = supplierFiles.FindCNPJ(cnpj);
 
@@ -192,10 +248,18 @@
         }
     }
 
-    public void UnlockSupplierMenu()
+    public void UnlockSupplierMenu() // opcao 5 - desbloq fornecedor
     {
         Console.WriteLine("Digite o CNPJ que deseja desbloquear: ");
         string cnpj = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(cnpj))
+        {
+            Console.WriteLine("CNPJ não pode ficar vazio.");
+            return;
+        }
+
+        cnpj = cnpj.ToUpperInvariant();
 
         Supplier supplier = supplierFiles.FindCNPJ(cnpj);
 
@@ -219,10 +283,18 @@
         }
     }
 
-    public void CheckSupplierStatusMenu()
+    public void CheckSupplierStatusMenu() // opcao 6 - verificar bloq/desbloq
     {
         Console.WriteLine("Digite o CNPJ que deseja consultar: ");
         string cnpj = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(cnpj))
+        {
+            Console.WriteLine("CNPJ não pode ficar vazio.");
+            return;
+        }
+
+        cnpj = cnpj.ToUpperInvariant();
 
         Supplier supplier = supplierFiles.FindCNPJ(cnpj);
 
@@ -238,6 +310,134 @@
         else
         {
             Console.WriteLine($"O fornecedor referente ao CNPJ {cnpj} está desbloqueado.");
+        }
+    }
+
+    public void ActivateSupplierMenu() // opcao 7 - ativar fornecedor
+    {
+        Console.WriteLine("Digite o CNPJ que deseja ativar: ");
+        string cnpj = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(cnpj))
+        {
+            Console.WriteLine("CNPJ não pode ficar vazio.");
+            return;
+        }
+
+        cnpj = cnpj.ToUpperInvariant();
+
+        Supplier supplier = supplierFiles.FindCNPJ(cnpj);
+
+        if (supplier == null)
+        {
+            Console.WriteLine("Fornecedor não foi encontrado.");
+            return;
+        }
+        if(supplier.Situation == ESituation.Active)
+        {
+            Console.WriteLine("Este fornecedor já está ativo.");
+            return;
+        }
+        try
+        {
+            Supplier updateSupplier = new Supplier(
+                supplier.CNPJ,
+                supplier.CorporateName,
+                supplier.OpeningDate,
+                supplier.LastPurchase,
+                supplier.RegistrationDate,
+                ESituation.Active);
+            if (supplierFiles.EditSupplier(cnpj, updateSupplier))
+            {
+                Console.WriteLine("Fornecedor ativado.");
+            }
+            else
+            {
+                Console.WriteLine("Não foi possível ativar o fornecedor.");
+            }
+        }catch(Exception ex)
+        {
+            Console.WriteLine($"Erro ao ativar o fornecedor: {ex.Message}");
+        }
+    }
+
+    public void InativateSupplierMenu() // opcao 8 - inativar fornecedor
+    {
+        Console.WriteLine("Digite o CNPJ que deseja inativar: ");
+        string cnpj = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(cnpj))
+        {
+            Console.WriteLine("CNPJ não pode ficar vazio.");
+            return;
+        }
+
+        cnpj = cnpj.ToUpperInvariant();
+
+        Supplier supplier = supplierFiles.FindCNPJ(cnpj);
+
+        if (supplier == null)
+        {
+            Console.WriteLine("Fornecedor não foi encontrado.");
+            return;
+        }
+        if (supplier.Situation == ESituation.Inactive)
+        {
+            Console.WriteLine("Este fornecedor já está inativo.");
+            return;
+        }
+        try
+        {
+            Supplier updateSupplier = new Supplier(
+                supplier.CNPJ,
+                supplier.CorporateName,
+                supplier.OpeningDate,
+                supplier.LastPurchase,
+                supplier.RegistrationDate,
+                ESituation.Inactive);
+
+            if(supplierFiles.EditSupplier(cnpj, updateSupplier))
+            {
+                Console.WriteLine("Fornecedor inativado.");
+            }
+            else
+            {
+                Console.WriteLine("Não foi possível inativar o fornecedor.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao inativar fornecedor: {ex.Message}");
+        }
+    }
+
+    public void CheckSituationMenu() // opcao 9 - verificar ativo/inativo
+    {
+        Console.WriteLine("Digite o CNPJ que deseja consultar: ");
+        string cnpj = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(cnpj))
+        {
+            Console.WriteLine("CNPJ não pode ficar vazio.");
+            return;
+        }
+
+        cnpj = cnpj.ToUpperInvariant();
+
+        Supplier supplier = supplierFiles.FindCNPJ(cnpj);
+
+        if (supplier == null)
+        {
+            Console.WriteLine("Fornecedor não encontrado.");
+            return;
+        }
+        if (supplier.Situation == ESituation.Active)
+        {
+            Console.WriteLine("O fornecedor está ativo.");
+        }
+        else if (supplier.Situation == ESituation.Inactive)
+        {
+            Console.WriteLine("O fornecedor está inativo.");
         }
     }
 }

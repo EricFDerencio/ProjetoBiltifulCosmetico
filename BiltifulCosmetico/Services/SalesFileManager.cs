@@ -48,8 +48,19 @@ public class SalesFileManager
                 .Where(item => item.SaleId == sale.SaleId)
                 .ToList();
 
-            // Valida a venda e seus itens.
-            sale.Validate();
+            // Valida a venda e converte erros de validação
+            // em erros de integridade dos arquivos.
+            try
+            {
+                sale.Validate();
+            }
+            catch (ArgumentException ex)
+            {
+                throw new InvalidDataException(
+                    $"A venda {sale.SaleId} possui dados inválidos no arquivo Venda.dat ou ItemVenda.dat.",
+                    ex
+                );
+            }
 
             // Confere o total registrado com a soma dos itens.
             if (!sale.StoredTotalAmount.HasValue ||

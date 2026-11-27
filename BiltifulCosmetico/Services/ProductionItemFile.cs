@@ -1,26 +1,35 @@
-﻿using BiltifulCosmetico.Classes;
+﻿
+using BiltifulCosmetico.Classes;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
+using System.IO;
+using System.Linq;
 
 namespace BiltifulCosmetico.Services
 {
     internal static class ProductionItemFile
     {
-        private static readonly string userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-        private static readonly string directory = Path.Combine(userProfile, "biltiful");
-        private static readonly string filePath = Path.Combine(directory, "ItemProducao.dat");
-        private const int RecordLength = 22;
+        private static readonly string directory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "biltiful"
+        );
 
-        public static List<(int Id, DateOnly ProductionDate, RawMaterial RawMaterial, int RawMaterialQuantity)>
+        private static readonly string filePath =
+            Path.Combine(directory, "ItemProducao.dat");
+
+        private const int RecordLength = 22;
 
         public static string EnsureFileExists()
         {
+            Directory.CreateDirectory(directory);
+
             if (!File.Exists(filePath))
             {
-                Directory.CreateDirectory(directory);
-                using FileStream file = File.Open(filePath, FileMode.OpenOrCreate);
+                using FileStream file = File.Open(
+                    filePath,
+                    FileMode.OpenOrCreate
+                );
             }
 
             return filePath;
@@ -37,8 +46,10 @@ namespace BiltifulCosmetico.Services
 
             int lastId = ReadId(lastRecord);
 
-            if (lastId == 99999)
-                throw new InvalidOperationException("O limite de IDs de produção foi atingido.");
+            if (lastId >= 99999)
+                throw new InvalidOperationException(
+                    "O limite de IDs de produção foi atingido."
+                );
 
             return lastId + 1;
         }
@@ -53,7 +64,9 @@ namespace BiltifulCosmetico.Services
                     out int id) ||
                 id < 1)
             {
-                throw new InvalidDataException("Registro inválido em ItemProducao.dat.");
+                throw new InvalidDataException(
+                    "Registro inválido em ItemProducao.dat."
+                );
             }
 
             return id;
@@ -64,23 +77,37 @@ namespace BiltifulCosmetico.Services
             ArgumentNullException.ThrowIfNull(item);
 
             EnsureFileExists();
-            File.AppendAllText(filePath, ToFileString(item) + Environment.NewLine);
+
+            File.AppendAllText(
+                filePath,
+                ToFileString(item) + Environment.NewLine
+            );
         }
 
         private static string ToFileString(ProductionItem item)
         {
-            return item.Id.ToString("D5", CultureInfo.InvariantCulture) +
-                   item.ProductionDate.ToString("ddMMyyyy", CultureInfo.InvariantCulture) +
-                   item.RawMaterial.Id +
-                   item.RawMaterialQuantity.ToString("D3", CultureInfo.InvariantCulture);
+            string record =
+                item.Id.ToString("D5", CultureInfo.InvariantCulture) +
+                item.ProductionDate.ToString("ddMMyyyy", CultureInfo.InvariantCulture) +
+                item.RawMaterial.Id +
+                item.RawMaterialQuantity.ToString("D3", CultureInfo.InvariantCulture);
+
+            if (record.Length != RecordLength)
+                throw new InvalidDataException(
+                    "O registro do item de produção possui tamanho incorreto."
+                );
+
+            return record;
         }
 
         public static List<ProductionItem> FindByProductionId(int productionId)
         {
             EnsureFileExists();
 
-            List<RawMaterial> rawMaterials = RawMaterialFile.LoadRawMaterials();
-            var items = new List<ProductionItem>();
+            List<RawMaterial> rawMaterials =
+                RawMaterialFile.LoadRawMaterials();
+
+            List<ProductionItem> items = new();
 
             foreach (string record in File.ReadLines(filePath))
             {
@@ -93,19 +120,38 @@ namespace BiltifulCosmetico.Services
             return items;
         }
 
-        private static ProductionItem FromFileString(string record, int id, List<RawMaterial> rawMaterials)
+        private static ProductionItem FromFileString(
+            string record,
+            int id,
+            List<RawMaterial> rawMaterials)
         {
-            DateOnly date = DateOnly.ParseExact(record.Substring(5, 8), "ddMMyyyy", CultureInfo.InvariantCulture);
+            DateOnly date = DateOnly.ParseExact(
+                record.Substring(5, 8),
+                "ddMMyyyy",
+                CultureInfo.InvariantCulture
+            );
 
             string materialCode = record.Substring(13, 6);
-            int quantity = int.Parse(record.Substring(19, 3), CultureInfo.InvariantCulture);
 
-            RawMaterial? material = rawMaterials.Find(raw => raw.Id == materialCode);
+            int quantity = int.Parse(
+                record.Substring(19, 3),
+                CultureInfo.InvariantCulture
+            );
+
+            RawMaterial? material =
+                rawMaterials.Find(raw => raw.Id == materialCode);
 
             if (material is null)
-                throw new InvalidDataException($"Matéria-prima {materialCode} não cadastrada.");
+                throw new InvalidDataException(
+                    $"Matéria-prima {materialCode} não cadastrada."
+                );
 
-            return ProductionItem.LoadFromRecord(id, date, material, quantity);
+            return ProductionItem.LoadFromRecord(
+                id,
+                date,
+                material,
+                quantity
+            );
         }
 
         public static int DeleteByProductionId(int productionId)
@@ -113,7 +159,10 @@ namespace BiltifulCosmetico.Services
             EnsureFileExists();
 
             string[] records = File.ReadAllLines(filePath);
-            string[] remaining = records.Where(record => ReadId(record) != productionId).ToArray();
+
+            string[] remaining = records
+                .Where(record => ReadId(record) != productionId)
+                .ToArray();
 
             int deletedCount = records.Length - remaining.Length;
 

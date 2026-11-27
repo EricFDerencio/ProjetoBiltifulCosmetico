@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
-using BiltifulCosmetico.Utils;
+using BiltifulCosmetico.Dados;
 
 namespace BiltifulCosmetico.Classes
 {
@@ -40,112 +41,83 @@ namespace BiltifulCosmetico.Classes
         public static List<Production> SetList()
         {
             List<Production> list = new List<Production>();
-            var reader = new StreamReader(Utils.Utils.path + Utils.Utils.file);
+            var reader = new StreamReader(Dados.ProductionFiles.caminho);
             string aux = string.Empty;
-            if (FileValidation(Utils.Utils.path + Utils.Utils.file))
+            if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
             {
                 while (aux is not null)
                 {
                     aux = reader.ReadLine();
                     if (!string.IsNullOrEmpty(aux))
                     {
-                        string[] partes = aux.Split(":");
+                        string[] partes = aux.Split("-");
                         int id = int.Parse(partes[1].Trim());
-                        DateTime date = DateTime.Parse(partes[3].Trim());
+                        DateTime date = DateTime.Parse(partes[3].Trim().TrimEnd(":"), new CultureInfo("pt-br"));
                         int prod = int.Parse(partes[5].Trim());
                         float quan = float.Parse(partes[7].Trim());
                         Production p = new(id, date, prod, quan);
                         list.Add(p);
                     }
                 }
+                reader.Close();
             }
             return list;
         }
 
         public int setId()
         {
-            if (FileValidation(Utils.Utils.path + Utils.Utils.file))
+            nextId = 0;
+
+            if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
             {
-                var reader = new StreamReader(Utils.Utils.path + Utils.Utils.file);
-                string leitor = string.Empty;
-                string aux = string.Empty;
-                do
+                using (var reader = new StreamReader(Dados.ProductionFiles.caminho))
                 {
-                    leitor = aux;
-                    aux = reader.ReadLine();
-                } while (aux is not null && aux != string.Empty);
-                reader.Close();
-                if(leitor != string.Empty)
-                {
-                    string[] partes = leitor.Split(":");
-                    nextId = int.Parse(partes[1].Trim());
-                }
-                else
-                {
-                    nextId = 0;
+                    string? linha;
+
+                    while ((linha = reader.ReadLine()) != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(linha))
+                        {
+                            string[] partes = linha.Split("-");
+
+                            if (partes.Length > 1 &&
+                                int.TryParse(partes[1].Trim(), out int idLido))
+                            {
+                                nextId = idLido;
+                            }
+                        }
+                    }
                 }
             }
+
             nextId++;
+
             if (nextId > 99999)
             {
                 throw new InvalidOperationException("Limite de IDs atingido");
             }
-            else
-            {
-                this.Id = nextId;
-            }
-            return this.Id;
-        }
-        public static bool PathValidation(string p)
-        {
-            try
-            {
-                Directory.CreateDirectory(p);
-                return true;
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                Console.WriteLine(e);
-                return false;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return false;
-            }
-        }
-        public static bool FileValidation(string p)
-        {
-            if (File.Exists(p))
-                return true;
-            try
-            {
-                if (PathValidation(p))
-                {
-                    File.Create(p + Utils.Utils.file).Close();
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return false;
-            }
-            return false;
+
+            Id = nextId;
+
+            return Id;
         }
 
         public void Register(Production p)
         {
-            if (FileValidation(Utils.Utils.path + Utils.Utils.file))
+            if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
             {
                 list.Add(p);
-                File.AppendAllText(Utils.Utils.path + Utils.Utils.file, "\n" + p.ToString);
+                File.AppendAllText(Dados.ProductionFiles.caminho, "\n" + p.ToString());
             }
         }
 
         public string Localizar(int id)
         {
             Production encontrada = list.Find(p => p.Id == id);
+            if(encontrada == null)
+            {
+                return "Produção não encontrada";
+            }
             return encontrada.ToString();
         }
         
@@ -162,23 +134,18 @@ namespace BiltifulCosmetico.Classes
             {
                 dados.Add(item.ToString());
             }
-            File.WriteAllLines(Utils.Utils.path + Utils.Utils.file, dados);
+            File.WriteAllLines(Dados.ProductionFiles.caminho, dados);
             return true;
         }
 
         public List<Production> Listar()
         {
-            return list;
+            return list; 
         }
 
         public override string ToString()
         {
-            return $"""
-                Id: {this.Id}: 
-                Data de produção: {this.ProductionDate}:
-                Produto: {this.Product}:
-                Quantidade: {this.Quantity}
-                """;
+            return $""" Id - {this.Id} - Data de produção - {this.ProductionDate}: - Produto - {this.Product} - Quantidade - {this.Quantity} """;
         }
     }
 }

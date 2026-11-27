@@ -1,14 +1,32 @@
 ﻿using BiltifulCosmetico.Dados;
 using Microsoft.Win32;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Globalization;
 using System.Text;
+using System.IO;
+using System.Linq;
 
-namespace BiltifulCosmetico.Classes
+public class Production
 {
-    internal class Production
+    public int Id { get; set; }
+
+    private static int nextId = 0;
+
+    public DateTime ProductionDate { get; set; }
+
+    public string Product { get; set; }
+
+    public float Quantity { get; set; }
+
+    public static List<Production> list = SetList();
+
+    private static string FilePath =>
+        Path.Combine(Utils.path, Utils.file);
+
+    public Production(string p, float q)
     {
         public int Id = 0;
         static int nextId = 0;
@@ -34,13 +52,19 @@ namespace BiltifulCosmetico.Classes
 
         public Production(int id, DateTime date, string prod, float quant)
         {
-            this.Id = id;
-            this.ProductionDate = date;
-            this.Product = prod;
-            this.Quantity = quant;
+            throw new ArgumentException(
+                "O código de barras deve possuir 13 dígitos e começar com 789.",
+                nameof(productCode)
+            );
         }
+    }
 
-        public static List<Production> SetList()
+    private static void ValidateQuantity(float quantity)
+    {
+        if (float.IsNaN(quantity) ||
+            float.IsInfinity(quantity) ||
+            quantity <= 0 ||
+            quantity > 999.99f)
         {
             List<Production> list = new List<Production>();
             var reader = new StreamReader(Dados.ProductionFiles.caminho);
@@ -72,12 +96,27 @@ namespace BiltifulCosmetico.Classes
             }
             return list;
         }
+    }
 
-        public int setId()
+    public static List<Production> SetList()
+    {
+        List<Production> productions = new();
+
+        string path = EnsureFileExists();
+
+        foreach (string line in File.ReadLines(path))
         {
-            nextId = 0;
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
 
-            if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
+            string[] parts = line.Split('|');
+
+            if (parts.Length != 4)
+                throw new InvalidDataException(
+                    "Registro inválido no arquivo de produção."
+                );
+
+            try
             {
                 using (var reader = new StreamReader(Dados.ProductionFiles.caminho))
                 {
@@ -95,19 +134,58 @@ namespace BiltifulCosmetico.Classes
                 }
             }
 
-            nextId++;
+                DateTime date = DateTime.ParseExact(
+                    parts[1],
+                    "ddMMyyyy",
+                    CultureInfo.InvariantCulture
+                );
 
-            if (nextId > 99999)
-            {
-                throw new InvalidOperationException("Limite de IDs atingido");
+                string productCode = parts[2];
+
+                float quantity = float.Parse(
+                    parts[3],
+                    CultureInfo.InvariantCulture
+                );
+
+                productions.Add(
+                    new Production(id, date, productCode, quantity)
+                );
             }
-
-            Id = nextId;
-
-            return Id;
+            catch (Exception ex) when (
+                ex is FormatException ||
+                ex is OverflowException ||
+                ex is ArgumentException
+            )
+            {
+                throw new InvalidDataException(
+                    "Não foi possível interpretar um registro de produção.",
+                    ex
+                );
+            }
         }
 
-        public void Register(Production p)
+        if (productions.GroupBy(p => p.Id).Any(g => g.Count() > 1))
+            throw new InvalidDataException(
+                "Existem IDs de produção duplicados."
+            );
+
+        nextId = productions.Count == 0
+            ? 0
+            : productions.Max(p => p.Id);
+
+        return productions;
+    }
+
+    private static string EnsureFileExists()
+    {
+        string directory = Path.GetDirectoryName(FilePath)
+            ?? throw new InvalidOperationException(
+                "Diretório de produção inválido."
+            );
+
+        Directory.CreateDirectory(directory);
+
+        if (!File.Exists(FilePath))
         {
             if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
             {
@@ -121,7 +199,25 @@ namespace BiltifulCosmetico.Classes
             }
         }
 
-        public string Localizar(int id)
+        return FilePath;
+    }
+
+    public int setId()
+    {
+        if (nextId >= 99999)
+            throw new InvalidOperationException(
+                "Limite de IDs de produção atingido."
+            );
+
+        nextId++;
+        Id = nextId;
+
+        return Id;
+    }
+
+    public static bool PathValidation(string p)
+    {
+        try
         {
             Production encontrada = list.Find(p => p.Id == id);
             if (encontrada == null)
@@ -149,14 +245,14 @@ namespace BiltifulCosmetico.Classes
                     item.Quantity.ToString().PadRight(10, ' ');
                 dados.Add(register);
             }
-            File.WriteAllLines(Dados.ProductionFiles.caminho, dados);
+
             return true;
         }
-
-        public List<Production> Listar()
+        catch (Exception ex)
         {
             return list;
         }
+    }
 
         public override string ToString()
         {

@@ -204,7 +204,7 @@ namespace BiltifulCosmetico.Classes
 
                         /*case "5":
                             {
-                                string[] registros = CustomerFile.ReadAllCustomers();
+                                string[] registros = CustomerFile.ReadActiveCustomers();
 
                                 if (registros.Length == 0)
                                 {

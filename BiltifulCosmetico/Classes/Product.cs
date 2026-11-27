@@ -1,14 +1,13 @@
-﻿using System.Xml.Linq;
-using System.Globalization;
-using System.IO;
+﻿using System.Globalization;
+
 public class Product
 {
     public string Barcode { get; private set; }
     public string Name { get; private set; }
     public decimal SalePrice { get; private set; }
     public DateTime RegistrationDate { get; private set; }
-    public DateTime LastSaleDate {  get; private set; }
-    public EStatus Status {  get; private set; }
+    public DateTime LastSaleDate { get; private set; }
+    public EStatus Status { get; private set; }
 
     public Product(List<Product> products)
     {
@@ -143,7 +142,7 @@ public class Product
         Console.Write("Digite o valor de venda do produto: ");
         do
         {
-            if (decimal.TryParse(Console.ReadLine(), out decimal price) &&  price > 0m && price <= 999.99m)
+            if (decimal.TryParse(Console.ReadLine(), out decimal price) && price > 0m && price <= 999.99m)
             {
                 price = Math.Round(price, 2);
                 if (price == 1000.00m)
@@ -154,7 +153,7 @@ public class Product
                 return price;
             }
             else
-            {   
+            {
                 Console.Write("Digite um valor válido de venda do produto: ");
             }
 
@@ -185,8 +184,8 @@ public class Product
 
     public string ToFileString()
     {
-        return Barcode + 
-            Name.PadRight(20) + 
+        return Barcode +
+            Name.PadRight(20) +
             ((int)(SalePrice * 100)).ToString().PadLeft(5, '0') +
             RegistrationDate.ToString("ddMMyyyy") +
             LastSaleDate.ToString("ddMMyyyy") +
@@ -199,7 +198,7 @@ public class Product
         {
             Console.WriteLine("O caminho do arquivo não pode ser vazio.");
             return false;
-        } 
+        }
         else if (!File.Exists(filePath))
         {
             if (createIfMissing)
@@ -222,13 +221,13 @@ public class Product
     public static List<Product> ReadProdcutsFile(string pathFile)
     {
         List<Product> productsFileList = new List<Product>();
-        
+
 
         if (ValidateFilePath(pathFile))
         {
             var reader = new StreamReader(pathFile);
             string? line = reader.ReadLine();
-            
+
             while (line != null)
             {
                 string barcode, name;
@@ -236,24 +235,24 @@ public class Product
                 DateTime registrationDate, lastSaleDate;
                 EStatus status;
 
-            barcode = line.Substring(0, 13);
-            name = line.Substring(13, 20).Trim();
-            salePrice = (decimal.Parse(line.Substring(33, 5))) / 100m;
-            registrationDate = DateTime.ParseExact(line.Substring(38, 8), "ddMMyyyy", CultureInfo.InvariantCulture);
-            lastSaleDate = DateTime.ParseExact(line.Substring(46, 8), "ddMMyyyy", CultureInfo.InvariantCulture);
+                barcode = line.Substring(0, 13);
+                name = line.Substring(13, 20).Trim();
+                salePrice = (decimal.Parse(line.Substring(33, 5))) / 100m;
+                registrationDate = DateTime.ParseExact(line.Substring(38, 8), "ddMMyyyy", CultureInfo.InvariantCulture);
+                lastSaleDate = DateTime.ParseExact(line.Substring(46, 8), "ddMMyyyy", CultureInfo.InvariantCulture);
                 status = line.Substring(54, 1) == "A" ? EStatus.Ativo : EStatus.Inativo;
 
-            Product p = new(barcode, name, salePrice, registrationDate, lastSaleDate, status);
+                Product p = new(barcode, name, salePrice, registrationDate, lastSaleDate, status);
 
-            productsFileList.Add(p);
-            line = reader.ReadLine();
+                productsFileList.Add(p);
+                line = reader.ReadLine();
 
             }
             reader.Close();
         }
-        
 
-        return productsFileList; 
+
+        return productsFileList;
     }
 
     public static void SaveProductsFile(List<Product> productsList, string pathFile)
@@ -261,12 +260,12 @@ public class Product
         if (ValidateFilePath(pathFile, true))
         {
 
-        var writer = new StreamWriter(pathFile);
-        foreach(var item in productsList)
-        {
-            writer.WriteLine(item.ToFileString());
-        }
-        writer.Close();
+            var writer = new StreamWriter(pathFile);
+            foreach (var item in productsList)
+            {
+                writer.WriteLine(item.ToFileString());
+            }
+            writer.Close();
 
         }
     }

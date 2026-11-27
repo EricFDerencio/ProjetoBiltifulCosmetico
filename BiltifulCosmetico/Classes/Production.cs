@@ -1,7 +1,11 @@
+﻿using BiltifulCosmetico.Dados;
+using Microsoft.Win32;
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Globalization;
+using System.Text;
 using System.IO;
 using System.Linq;
 
@@ -24,38 +28,29 @@ public class Production
 
     public Production(string p, float q)
     {
-        ValidateProductCode(p);
-        ValidateQuantity(q);
+        public int Id = 0;
+        static int nextId = 0;
+        public DateTime ProductionDate { get; set; }
+        public string Product { get; set; }
+        public float Quantity { get; set; }
+        public static List<Production> list = SetList();
 
-        Id = setId();
-        ProductionDate = DateTime.Today;
-        Product = p;
-        Quantity = q;
-    }
+        public Production(string p, float q)
+        {
+            this.Id = setId();
+            this.ProductionDate = DateTime.Today;
+            this.Product = p;
+            if (q > 999.99)
+            {
+                throw new ArgumentOutOfRangeException(nameof(q), "A quantidade não deve exceder de 999.99");
+            }
+            else
+            {
+                this.Quantity = q;
+            }
+        }
 
-    public Production(int id, DateTime date, string prod, float quant)
-    {
-        if (id < 1 || id > 99999)
-            throw new ArgumentOutOfRangeException(
-                nameof(id),
-                "O ID deve estar entre 1 e 99999."
-            );
-
-        ValidateProductCode(prod);
-        ValidateQuantity(quant);
-
-        Id = id;
-        ProductionDate = date;
-        Product = prod;
-        Quantity = quant;
-    }
-
-    private static void ValidateProductCode(string productCode)
-    {
-        if (string.IsNullOrWhiteSpace(productCode) ||
-            productCode.Length != 13 ||
-            !productCode.StartsWith("789") ||
-            !productCode.All(char.IsAsciiDigit))
+        public Production(int id, DateTime date, string prod, float quant)
         {
             throw new ArgumentException(
                 "O código de barras deve possuir 13 dígitos e começar com 789.",
@@ -71,10 +66,35 @@ public class Production
             quantity <= 0 ||
             quantity > 999.99f)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(quantity),
-                "A quantidade deve ser maior que zero e não exceder 999.99."
-            );
+            List<Production> list = new List<Production>();
+            var reader = new StreamReader(Dados.ProductionFiles.caminho);
+            string aux = string.Empty;
+            if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
+            {
+                while (aux is not null)
+                {
+                    aux = reader.ReadLine();
+                    if (!string.IsNullOrEmpty(aux))
+                    {
+                        string idreader = aux.Substring(0, 4);
+                        int id = int.Parse(idreader.Trim());
+
+                        string datereader = aux.Substring(5, 10);
+                        DateTime date = DateTime.ParseExact(datereader.Trim(), "ddMMyyyy", CultureInfo.InvariantCulture);
+
+                        string prodreader = aux.Substring(15, 13);
+                        string prod = prodreader.Trim();
+
+                        string quantityreader = aux.Substring(31, 5);
+                        float quan = float.Parse(quantityreader.Trim());
+
+                        Production p = new(id, date, prod, quan);
+                        list.Add(p);
+                    }
+                }
+                reader.Close();
+            }
+            return list;
         }
     }
 
@@ -98,10 +118,21 @@ public class Production
 
             try
             {
-                int id = int.Parse(
-                    parts[0],
-                    CultureInfo.InvariantCulture
-                );
+                using (var reader = new StreamReader(Dados.ProductionFiles.caminho))
+                {
+                    string? linha;
+
+                    while ((linha = reader.ReadLine()) != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(linha))
+                        {
+                            string idreader = linha.Substring(0, 5);
+
+                            nextId = int.Parse(idreader.Trim());
+                        }
+                    }
+                }
+            }
 
                 DateTime date = DateTime.ParseExact(
                     parts[1],
@@ -156,7 +187,16 @@ public class Production
 
         if (!File.Exists(FilePath))
         {
-            using FileStream file = File.Create(FilePath);
+            if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
+            {
+                list.Add(p);
+                string register = Id.ToString().PadRight(5, ' ') +
+                    ProductionDate.ToString("ddMMyyyy").PadRight(10, ' ') +
+                    Product.PadRight(20, ' ') +
+                    Quantity.ToString().PadRight(10, ' ');
+
+                File.AppendAllText(Dados.ProductionFiles.caminho, "\n" + register);
+            }
         }
 
         return FilePath;
@@ -179,121 +219,44 @@ public class Production
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(p))
-                return false;
-
-            Directory.CreateDirectory(p);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            return false;
-        }
-    }
-
-    public static bool FileValidation(string p)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(p))
-                return false;
-
-            string? directory = Path.GetDirectoryName(p);
-
-            if (!string.IsNullOrWhiteSpace(directory))
-                Directory.CreateDirectory(directory);
-
-            if (!File.Exists(p))
+            Production encontrada = list.Find(p => p.Id == id);
+            if (encontrada == null)
             {
-                using FileStream file = File.Create(p);
+                return "Produção não encontrada";
+            }
+            return encontrada.ToString();
+        }
+
+        public bool Delete(int id)
+        {
+            Production enc = list.Find(p => p.Id == id);
+            if (enc == null)
+            {
+                return false;
+            }
+            list.Remove(enc);
+            string register;
+            List<string> dados = new List<string>();
+            foreach (var item in list)
+            {
+                register = item.Id.ToString().PadRight(5, ' ') +
+                    item.ProductionDate.ToString("ddMMyyyy").PadRight(10, ' ') +
+                    item.Product.PadRight(20, ' ') +
+                    item.Quantity.ToString().PadRight(10, ' ');
+                dados.Add(register);
             }
 
             return true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
-            return false;
+            return list;
         }
     }
 
-    public void Register(Production p)
-    {
-        ArgumentNullException.ThrowIfNull(p);
-
-        EnsureFileExists();
-
-        if (list.Any(item => item.Id == p.Id))
-            throw new InvalidOperationException(
-                "Já existe uma produção com esse ID."
-            );
-
-        File.AppendAllText(
-            FilePath,
-            ToFileString(p) + Environment.NewLine
-        );
-
-        list.Add(p);
-
-        if (p.Id > nextId)
-            nextId = p.Id;
-    }
-
-    private static string ToFileString(Production p)
-    {
-        return p.Id.ToString(CultureInfo.InvariantCulture) + "|" +
-               p.ProductionDate.ToString(
-                   "ddMMyyyy",
-                   CultureInfo.InvariantCulture
-               ) + "|" +
-               p.Product + "|" +
-               p.Quantity.ToString(
-                   "0.00",
-                   CultureInfo.InvariantCulture
-               );
-    }
-
-    public string Localizar(int id)
-    {
-        Production? encontrada = list.Find(p => p.Id == id);
-
-        if (encontrada == null)
-            return "Produção não encontrada";
-
-        return encontrada.ToString();
-    }
-
-    public bool Delete(int id)
-    {
-        Production? production = list.Find(p => p.Id == id);
-
-        if (production == null)
-            return false;
-
-        list.Remove(production);
-
-        List<string> records = list
-            .Select(ToFileString)
-            .ToList();
-
-        File.WriteAllLines(FilePath, records);
-
-        return true;
-    }
-
-    public List<Production> Listar()
-    {
-        return list;
-    }
-
-    public override string ToString()
-    {
-        return $"""
-            ID: {Id}
-            Data de produção: {ProductionDate:dd/MM/yyyy}
-            Código de barras: {Product}
-            Quantidade: {Quantity}
-            """;
+        public override string ToString()
+        {
+            return $""" Id - {this.Id:D5} - Data de produção - {this.ProductionDate}: - Produto - {this.Product} - Quantidade - {this.Quantity} """;
+        }
     }
 }

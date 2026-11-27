@@ -6,7 +6,7 @@ namespace BiltifulCosmetico.Dados
 {
     internal class ProductionFiles
     {
-        public static string caminho = Environment.GetEnvironmentVariable("USERPROFILE") + @"\biltiful\ProdutcionTeste2.dat";
+        public static string caminho = Environment.GetEnvironmentVariable("USERPROFILE") + @"\biltiful\ProdutcionTeste4.dat";
 
         public static bool PathValidation(string p)
         {
@@ -29,17 +29,23 @@ namespace BiltifulCosmetico.Dados
 
         public static bool FileValidation(string p)
         {
+            if (string.IsNullOrWhiteSpace(p))
+                return false;
+
             try
             {
-                string diretorio = Path.GetDirectoryName(p);
-                if (!string.IsNullOrEmpty(diretorio))
+                if (File.Exists(p))
+                    return true;
+
+                string? directory = Path.GetDirectoryName(p);
+
+                if (string.IsNullOrEmpty(directory))
                 {
-                    Directory.CreateDirectory(diretorio);
+                    Directory.CreateDirectory(directory);
                 }
-                if (!File.Exists(p))
-                {
-                    File.Create(p).Close();
-                }
+
+                File.Create(p).Close();
+
                 return true;
             }
             catch (Exception e)

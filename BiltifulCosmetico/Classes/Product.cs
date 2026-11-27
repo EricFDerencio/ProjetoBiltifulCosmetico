@@ -1,4 +1,4 @@
-﻿using System.Xml.Linq;
+﻿using System.Globalization;
 
 public class Product
 {
@@ -6,8 +6,8 @@ public class Product
     public string Name { get; private set; }
     public decimal SalePrice { get; private set; }
     public DateTime RegistrationDate { get; private set; }
-    public DateTime LastSaleDate {  get; private set; }
-    public EStatus Status {  get; private set; }
+    public DateTime LastSaleDate { get; private set; }
+    public EStatus Status { get; private set; }
 
     public Product(List<Product> products)
     {
@@ -19,7 +19,7 @@ public class Product
         Status = EStatus.Ativo;
     }
 
-    public Product(string barcode, string name, decimal salePrice, DateTime registrationDate, DateTime lastSaleDate, EStatus status)
+    private Product(string barcode, string name, decimal salePrice, DateTime registrationDate, DateTime lastSaleDate, EStatus status)
     {
         Name = name;
         Barcode = barcode;
@@ -142,7 +142,7 @@ public class Product
         Console.Write("Digite o valor de venda do produto: ");
         do
         {
-            if (decimal.TryParse(Console.ReadLine(), out decimal price) &&  price > 0m && price <= 999.99m)
+            if (decimal.TryParse(Console.ReadLine(), out decimal price) && price > 0m && price <= 999.99m)
             {
                 price = Math.Round(price, 2);
                 if (price == 1000.00m)
@@ -153,7 +153,7 @@ public class Product
                 return price;
             }
             else
-            {   
+            {
                 Console.Write("Digite um valor válido de venda do produto: ");
             }
 
@@ -184,17 +184,90 @@ public class Product
 
     public string ToFileString()
     {
-        return Barcode + 
-            Name.PadLeft(20) + 
+        return Barcode +
+            Name.PadRight(20) +
             ((int)(SalePrice * 100)).ToString().PadLeft(5, '0') +
             RegistrationDate.ToString("ddMMyyyy") +
             LastSaleDate.ToString("ddMMyyyy") +
             Status.ToString()[0];
     }
 
-    public List<Product> ReadProdcutsFile(List<Product> productsFile,  string pathfile)
+    internal static bool ValidateFilePath(string filePath, bool createIfMissing = false)
     {
-        return productsFile; //não terminado apenas para dar commit sem erros.
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            Console.WriteLine("O caminho do arquivo não pode ser vazio.");
+            return false;
+        }
+        else if (!File.Exists(filePath))
+        {
+            if (createIfMissing)
+            {
+                string? directory = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                File.Create(filePath).Close();
+                return true;
+            }
+            Console.WriteLine("O arquivo especificado não existe.");
+            return false;
+        }
+        return true;
+    }
+
+    public static List<Product> ReadProdcutsFile(string pathFile)
+    {
+        List<Product> productsFileList = new List<Product>();
+
+
+        if (ValidateFilePath(pathFile))
+        {
+            var reader = new StreamReader(pathFile);
+            string? line = reader.ReadLine();
+
+            while (line != null)
+            {
+                string barcode, name;
+                decimal salePrice;
+                DateTime registrationDate, lastSaleDate;
+                EStatus status;
+
+                barcode = line.Substring(0, 13);
+                name = line.Substring(13, 20).Trim();
+                salePrice = (decimal.Parse(line.Substring(33, 5))) / 100m;
+                registrationDate = DateTime.ParseExact(line.Substring(38, 8), "ddMMyyyy", CultureInfo.InvariantCulture);
+                lastSaleDate = DateTime.ParseExact(line.Substring(46, 8), "ddMMyyyy", CultureInfo.InvariantCulture);
+                status = line.Substring(54, 1) == "A" ? EStatus.Ativo : EStatus.Inativo;
+
+                Product p = new(barcode, name, salePrice, registrationDate, lastSaleDate, status);
+
+                productsFileList.Add(p);
+                line = reader.ReadLine();
+
+            }
+            reader.Close();
+        }
+
+
+        return productsFileList;
+    }
+
+    public static void SaveProductsFile(List<Product> productsList, string pathFile)
+    {
+        if (ValidateFilePath(pathFile, true))
+        {
+
+            var writer = new StreamWriter(pathFile);
+            foreach (var item in productsList)
+            {
+                writer.WriteLine(item.ToFileString());
+            }
+            writer.Close();
+
+        }
     }
 
 }

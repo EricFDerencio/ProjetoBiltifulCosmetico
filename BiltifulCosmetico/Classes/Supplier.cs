@@ -10,8 +10,7 @@
 
 
     public Supplier(string cnpj, string name, DateOnly openingDate)
-    {
-        ValidateCNPJ(cnpj);
+    { 
 
         if (ValidateCNPJ(cnpj))
         {
@@ -170,7 +169,7 @@
     public string ToFileString()
     {
         return CNPJ +
-            CorporateName +
+            CorporateName.PadLeft(50, '0') +
             OpeningDate.ToString("ddMMyyyy") +
             LastPurchase.ToString("ddMMyyyy") +
             RegistrationDate.ToString("ddMMyyyy") +

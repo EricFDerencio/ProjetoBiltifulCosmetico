@@ -4,9 +4,16 @@ public class SaleItemFileRepository
 {
     private readonly string _filePath;
 
-    public SaleItemFileRepository(string filePath = "ItemVenda.dat")
+    public SaleItemFileRepository(string filePath = null)
     {
-        _filePath = filePath;
+        string directory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "biltiful"
+        );
+
+        Directory.CreateDirectory(directory);
+
+        _filePath = filePath ?? Path.Combine(directory, "ItemVenda.dat");
     }
 
     public void SaveAll(IEnumerable<SaleItem> items)

@@ -1,4 +1,11 @@
-﻿public static class RawMaterialFile
+﻿
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+
+public static class RawMaterialFile
 {
     public static readonly string FilePath = Path.Combine(
         Environment.GetEnvironmentVariable("USERPROFILE") ?? string.Empty,
@@ -37,9 +44,18 @@
 
         foreach (RawMaterial material in materials)
         {
+            if (material == null)
+                throw new InvalidDataException(
+                    "A lista contém uma matéria-prima inválida."
+                );
+
             string line = material.ToFileString();
-            if (line.Length != 43)
-                throw new Exception("Tamanho de registro inválido.");
+
+            if (line.Length != RecordLength)
+                throw new InvalidDataException(
+                    "Tamanho de registro inválido."
+                );
+
             lines.Add(line);
         }
 
@@ -48,22 +64,32 @@
 
     public static RawMaterial FromFileString(string line)
     {
-        string id = line.Substring(0, 6);
+        if (string.IsNullOrEmpty(line) || line.Length != RecordLength)
+            throw new InvalidDataException(
+                "Registro de matéria-prima inválido."
+            );
 
+        string id = line.Substring(0, 6);
         string name = line.Substring(6, 20).Trim();
+
         DateTime lastBuy = DateTime.ParseExact(
             line.Substring(26, 8),
             "ddMMyyyy",
-            null
+            CultureInfo.InvariantCulture
         );
 
         DateTime dateOfRegister = DateTime.ParseExact(
             line.Substring(34, 8),
             "ddMMyyyy",
-            null
+            CultureInfo.InvariantCulture
         );
 
-        ESituation situation = (ESituation)line[42];
+        char situationCode = line[42];
+
+        if (situationCode != 'A' && situationCode != 'I')
+            throw new InvalidDataException(
+                "Situação da matéria-prima inválida."
+            );
 
         return new RawMaterial(id, name, lastBuy, dateOfRegister, situation);
     }
@@ -78,24 +104,43 @@
 
             foreach (string line in File.ReadAllLines(FilePath))
             {
-                if (line.Length != 43)
-                    throw new Exception("Registro com tamanho inválido.");
+                if (line.Length != RecordLength)
+                    throw new InvalidDataException(
+                        "Registro com tamanho inválido."
+                    );
 
                 materials.Add(FromFileString(line));
             }
-            return materials;
         }
-        catch (Exception e)
+        catch (Exception ex) when (
+            ex is IOException ||
+            ex is UnauthorizedAccessException ||
+            ex is FormatException ||
+            ex is ArgumentException
+        )
         {
-            Console.WriteLine($"Ocorreu um erro ao carregar os Materiais: {e.Message}");
-            return materials;
+            Console.WriteLine(
+                $"Ocorreu um erro ao carregar as matérias-primas: {ex.Message}"
+            );
+
+            throw;
         }
+
+        return materials;
     }
 
     public static List<RawMaterial> SearchMaterials(List<RawMaterial> materials, string name)
     {
+        ArgumentNullException.ThrowIfNull(materials);
+
+        if (string.IsNullOrWhiteSpace(name))
+            return new List<RawMaterial>();
+
         return materials.FindAll(
-            material => material.Name.Contains(name, StringComparison.OrdinalIgnoreCase)
+            material => material.Name.Contains(
+                name,
+                StringComparison.OrdinalIgnoreCase
+            )
         );
     }
 

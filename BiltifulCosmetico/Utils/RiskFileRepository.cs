@@ -1,24 +1,48 @@
-﻿using System.Globalization;
+﻿using BiltifulCosmetico.Classes;
 using BiltifulCosmetico.Services;
+
 public class RiskFileRepository
 {
+    private readonly string _filePath;
+
+    public RiskFileRepository(string? filePath = null)
+    {
+        _filePath = filePath ?? CustomerFile.RISKFULLPATH;
+    }
+
     public bool IsCpfAtRisk(string cpf)
     {
-        if (!CpfValidator.IsValid(cpf))
-            throw new ArgumentException("CPF inválido.");
+        if (string.IsNullOrWhiteSpace(cpf))
+            throw new ArgumentException("CPF não informado.", nameof(cpf));
 
-        string normalizeCpf = CpfValidator.Normalize(cpf);
+        cpf = Customer.NormalizarCpf(cpf);
 
-        if (!File.Exists(CustomerFile.RISKFULLPATH))
-            throw new FileNotFoundException("Arquivo Risco.dat não encontrado.", CustomerFile.RISKFULLPATH);
+        if (!Customer.ValidarDigitoVerificador(cpf))
+            throw new ArgumentException("CPF inválido.", nameof(cpf));
 
-        foreach (string line in File.ReadLines(CustomerFile.RISKFULLPATH))
+        if (!File.Exists(_filePath))
+            return false;
+
+        foreach (string registro in File.ReadLines(_filePath))
         {
-            if (line.Length != 11 || !line.All(char.IsAsciiDigit))
-                throw new InvalidDataException("O arquivo Risco.dat possui um registro inválido.");
-            if (line == normalizeCpf)
+            if (registro.Length != 11)
+            {
+                throw new InvalidDataException(
+                    "Registro inválido no arquivo Risco.dat."
+                );
+            }
+
+            if (!registro.All(char.IsAsciiDigit))
+            {
+                throw new InvalidDataException(
+                    "O arquivo Risco.dat contém um CPF inválido."
+                );
+            }
+
+            if (registro == cpf)
                 return true;
         }
+
         return false;
     }
 }

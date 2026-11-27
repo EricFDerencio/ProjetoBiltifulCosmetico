@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
-using BiltifulCosmetico.Dados;
-
-namespace BiltifulCosmetico.Classes
+﻿public class Production
 {
     internal class Production
     {
@@ -41,9 +35,9 @@ namespace BiltifulCosmetico.Classes
         public static List<Production> SetList()
         {
             List<Production> list = new List<Production>();
-            var reader = new StreamReader(Dados.ProductionFiles.caminho);
+            var reader = new StreamReader(Utils.path + Utils.file);
             string aux = string.Empty;
-            if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
+            if (FileValidation(Utils.path + Utils.file))
             {
                 while (aux is not null)
                 {
@@ -66,11 +60,18 @@ namespace BiltifulCosmetico.Classes
 
         public int setId()
         {
-            nextId = 0;
-
-            if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
+            if (FileValidation(Utils.path + Utils.file))
             {
-                using (var reader = new StreamReader(Dados.ProductionFiles.caminho))
+                var reader = new StreamReader(Utils.path + Utils.file);
+                string leitor = string.Empty;
+                string aux = string.Empty;
+                do
+                {
+                    leitor = aux;
+                    aux = reader.ReadLine();
+                } while (aux is not null && aux != string.Empty);
+                reader.Close();
+                if(leitor != string.Empty)
                 {
                     string? linha;
 
@@ -96,18 +97,56 @@ namespace BiltifulCosmetico.Classes
             {
                 throw new InvalidOperationException("Limite de IDs atingido");
             }
-
-            Id = nextId;
-
-            return Id;
+            else
+            {
+                this.Id = nextId;
+            }
+            return this.Id;
+        }
+        public static bool PathValidation(string p)
+        {
+            try
+            {
+                Directory.CreateDirectory(p);
+                return true;
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+        }
+        public static bool FileValidation(string p)
+        {
+            if (File.Exists(p))
+                return true;
+            try
+            {
+                if (PathValidation(p))
+                {
+                    File.Create(p + Utils.file).Close();
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+            return false;
         }
 
         public void Register(Production p)
         {
-            if (Dados.ProductionFiles.FileValidation(Dados.ProductionFiles.caminho))
+            if (FileValidation(Utils.path + Utils.file))
             {
                 list.Add(p);
-                File.AppendAllText(Dados.ProductionFiles.caminho, "\n" + p.ToString());
+                File.AppendAllText(Utils.path + Utils.file, "\n" + p.ToString());
             }
         }
 
@@ -134,7 +173,7 @@ namespace BiltifulCosmetico.Classes
             {
                 dados.Add(item.ToString());
             }
-            File.WriteAllLines(Dados.ProductionFiles.caminho, dados);
+            File.WriteAllLines(Utils.path + Utils.file, dados);
             return true;
         }
 

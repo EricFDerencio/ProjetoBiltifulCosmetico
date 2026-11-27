@@ -105,8 +105,7 @@
     public bool FindBlockedSupplier(string cnpj) // percorre o arquivo de bloqueados e tenta encontrar o cnpj passado como parametro
     {
         if (!File.Exists(blockedsPath))
-        {
-            Console.WriteLine("Fornecedor não está bloqueado.");
+        { 
             return false;
         }
         using (StreamReader reader = new StreamReader(blockedsPath))
@@ -116,7 +115,6 @@
             {
                 if (line == cnpj)
                 {
-                    Console.WriteLine("Fornecedor está bloqueado.");
                     return true;
                 }
 

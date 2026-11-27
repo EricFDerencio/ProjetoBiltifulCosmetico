@@ -44,15 +44,16 @@
                     aux = reader.ReadLine();
                     if (!string.IsNullOrEmpty(aux))
                     {
-                        string[] partes = aux.Split(":");
+                        string[] partes = aux.Split("-");
                         int id = int.Parse(partes[1].Trim());
-                        DateTime date = DateTime.Parse(partes[3].Trim());
+                        DateTime date = DateTime.Parse(partes[3].Trim().TrimEnd(":"), new CultureInfo("pt-br"));
                         int prod = int.Parse(partes[5].Trim());
                         float quan = float.Parse(partes[7].Trim());
                         Production p = new(id, date, prod, quan);
                         list.Add(p);
                     }
                 }
+                reader.Close();
             }
             return list;
         }
@@ -72,15 +73,26 @@
                 reader.Close();
                 if(leitor != string.Empty)
                 {
-                    string[] partes = leitor.Split(":");
-                    nextId = int.Parse(partes[1].Trim());
-                }
-                else
-                {
-                    nextId = 0;
+                    string? linha;
+
+                    while ((linha = reader.ReadLine()) != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(linha))
+                        {
+                            string[] partes = linha.Split("-");
+
+                            if (partes.Length > 1 &&
+                                int.TryParse(partes[1].Trim(), out int idLido))
+                            {
+                                nextId = idLido;
+                            }
+                        }
+                    }
                 }
             }
+
             nextId++;
+
             if (nextId > 99999)
             {
                 throw new InvalidOperationException("Limite de IDs atingido");
@@ -141,6 +153,10 @@
         public string Localizar(int id)
         {
             Production encontrada = list.Find(p => p.Id == id);
+            if(encontrada == null)
+            {
+                return "Produção não encontrada";
+            }
             return encontrada.ToString();
         }
         
@@ -163,17 +179,12 @@
 
         public List<Production> Listar()
         {
-            return list;
+            return list; 
         }
 
         public override string ToString()
         {
-            return $"""
-                Id: {this.Id}: 
-                Data de produção: {this.ProductionDate}:
-                Produto: {this.Product}:
-                Quantidade: {this.Quantity}
-                """;
+            return $""" Id - {this.Id} - Data de produção - {this.ProductionDate}: - Produto - {this.Product} - Quantidade - {this.Quantity} """;
         }
     }
 }

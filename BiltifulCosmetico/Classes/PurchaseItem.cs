@@ -14,7 +14,7 @@
         RawMaterialId = rawMaterialId;
         Quantity = quantity;
         UnitValue = unitValue;
-        ItemTotal = quantity * unitValue;
+        ItemTotal = Math.Round(quantity * unitValue, 2);
     }
 
     public string ToFileLine()
@@ -29,7 +29,7 @@
         long totalu = (long)(UnitValue * 100);
         string unitValue = totalu.ToString().PadLeft(5, '0');
         long totali = (long)(ItemTotal * 100);
-        string itemTotal = totali.ToString().PadLeft(5, '0');
+        string itemTotal = totali.ToString().PadLeft(6, '0');
 
         return id + purchaseItem + rawMaterialId + quantity + unitValue + itemTotal;
     }

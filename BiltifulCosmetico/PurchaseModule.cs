@@ -12,12 +12,12 @@
     }
 
     //validação para ver se o fornecedor esta bloqueado ou tem menos de 6 meses de abertura
-    public string ValidateSupplier(bool supplierIsBlocked, DateTime supplierOpeningDate)
+    public string ValidateSupplier(bool supplierIsBlocked, DateOnly supplierOpeningDate)
     {
         if (supplierIsBlocked)
             return "Fornecedor bloqueado. Compra não permitida.";
 
-        if (supplierOpeningDate.AddMonths(6) > DateTime.Today) //Se a data de abertura(+6) passar da data atual, ele não vai permitir
+        if (supplierOpeningDate.AddMonths(6) > DateOnly.FromDateTime(DateTime.Today))
             return "Fornecedor com menos de 6 meses de abertura.";
 
         return "";
@@ -41,6 +41,35 @@
 
         return "Matéria-prima não encontrada.";
     }
+
+    //validação de item
+    public string ValidateItem(Purchase purchase, int itemCount, string rawMaterialId,
+                           decimal quantity, decimal unitValue)
+    {
+        if (itemCount >= 3)
+            return "A compra aceita no máximo 3 itens.";
+
+        string error = ValidateRawMaterial(rawMaterialId);
+        if (error != "")
+            return error;
+
+        if (quantity <= 0 || quantity > 999.99m)
+            return "Quantidade inválida (máximo 999,99).";
+
+        if (unitValue <= 0 || unitValue > 999.99m)
+            return "Valor unitário inválido (máximo 999,99).";
+
+        decimal itemTotal = Math.Round(quantity * unitValue, 2);
+
+        if (itemTotal > 9999.99m)
+            return "Total do item passa de 9.999,99.";
+
+        if (purchase.TotalValue + itemTotal > 99999.99m)
+            return "Total da compra passaria de 99.999,99.";
+
+        return "";
+    }
+
 
     //cria o item e soma o valor dele no valor total da compra
     public PurchaseItem AddItem(Purchase purchase, string rawMaterialId, decimal quantity, decimal unitValue)

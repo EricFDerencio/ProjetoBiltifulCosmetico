@@ -1,9 +1,11 @@
-﻿public class SalesManager
+﻿
+using BiltifulCosmetico.Classes;
+using BiltifulCosmetico.Services;
+
+public class SalesManager
 {
     private readonly List<Sale> _sales = new();
     private int _nextSaleId = 1;
-
-    //posição da venda atualmente selecionada na navegação.
     private int _currentIndex = -1;
 
     public Sale RegisterSale(Sale sale)
@@ -35,8 +37,49 @@
             }
         }
 
+        // Valida os dados da venda e seus itens.
         sale.Validate();
 
+        // Verifica se o cliente está cadastrado.
+        string? registro = CustomerFile.FindCustomerByCPF(sale.ClientCPF);
+
+        if (registro == null)
+        {
+            throw new InvalidOperationException(
+                "Venda bloqueada: cliente não encontrado."
+            );
+        }
+
+        // Recupera os dados do cliente.
+        Customer customer = new Customer(registro);
+
+        // Verifica se o cliente está ativo.
+        if (customer.Situation != ESituation.Active)
+        {
+            throw new InvalidOperationException(
+                "Venda bloqueada: cliente inativo."
+            );
+        }
+
+        // Verifica se o cliente é maior de idade.
+        if (!customer.IsAdult())
+        {
+            throw new InvalidOperationException(
+                "Venda bloqueada: cliente menor de 18 anos."
+            );
+        }
+
+        // Verifica se o CPF consta na lista de risco.
+        RiskFileRepository riskRepository = new RiskFileRepository();
+
+        if (riskRepository.IsCpfAtRisk(customer.CPF))
+        {
+            throw new InvalidOperationException(
+                "Venda bloqueada: CPF consta na lista de risco."
+            );
+        }
+
+        // Verifica se já existe uma venda com o mesmo código.
         if (_sales.Any(s => s.SaleId == sale.SaleId))
         {
             throw new InvalidOperationException(
@@ -44,7 +87,19 @@
             );
         }
 
+        // Atualiza a data da última compra do cliente.
+        if (!CustomerFile.UpdateLastPurchase(
+            customer.CPF,
+            sale.SaleDate))
+        {
+            throw new InvalidOperationException(
+                "Não foi possível atualizar a data da última compra do cliente."
+            );
+        }
+
+        // Registra a venda na lista.
         _sales.Add(sale);
+
         _nextSaleId++;
 
         return sale;
@@ -53,7 +108,7 @@
     public Sale? FindSale(int saleId)
     {
         return _sales.FirstOrDefault(
-            s => s.SaleId == saleId
+            sale => sale.SaleId == saleId
         );
     }
 
@@ -61,7 +116,9 @@
     {
         if (fileManager == null)
         {
-            throw new ArgumentNullException(nameof(fileManager));
+            throw new ArgumentNullException(
+                nameof(fileManager)
+            );
         }
 
         // Exclui a venda e seus itens dos arquivos.
@@ -177,8 +234,9 @@
         _sales.Clear();
         _sales.AddRange(loadedSales);
 
-        // Ordena as vendas pelo código.
-        _sales.Sort((a, b) => a.SaleId.CompareTo(b.SaleId));
+        _sales.Sort(
+            (a, b) => a.SaleId.CompareTo(b.SaleId)
+        );
 
         // Define o próximo código disponível.
         _nextSaleId = _sales.Count == 0

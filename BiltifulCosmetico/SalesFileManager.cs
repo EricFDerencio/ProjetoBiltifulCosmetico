@@ -1,4 +1,5 @@
-﻿public class SalesFileManager
+﻿
+public class SalesFileManager
 {
     private readonly SaleFileRepository _saleRepository;
     private readonly SaleItemFileRepository _itemRepository;
@@ -16,9 +17,11 @@
 
     public List<Sale> LoadAll()
     {
+        // Carrega os registros dos dois arquivos.
         List<Sale> sales = _saleRepository.LoadAll();
         List<SaleItem> items = _itemRepository.LoadAll();
 
+        // Verifica se existem vendas duplicadas.
         if (sales.GroupBy(sale => sale.SaleId)
                  .Any(group => group.Count() > 1))
         {
@@ -27,6 +30,7 @@
             );
         }
 
+        // Verifica se todos os itens pertencem a uma venda existente.
         foreach (SaleItem item in items)
         {
             if (!sales.Any(sale => sale.SaleId == item.SaleId))
@@ -37,15 +41,19 @@
             }
         }
 
+        // Associa os itens às respectivas vendas.
         foreach (Sale sale in sales)
         {
             sale.Items = items
                 .Where(item => item.SaleId == sale.SaleId)
                 .ToList();
 
+            // Valida a venda e seus itens.
             sale.Validate();
 
-            if (sale.StoredTotalAmount != sale.TotalAmount)
+            // Confere o total registrado com a soma dos itens.
+            if (!sale.StoredTotalAmount.HasValue ||
+                sale.StoredTotalAmount.Value != sale.TotalAmount)
             {
                 throw new InvalidDataException(
                     $"O total da venda {sale.SaleId} não corresponde à soma dos itens."
@@ -68,6 +76,7 @@
 
         List<Sale> saleList = sales.ToList();
 
+        // Verifica se existem vendas nulas.
         if (saleList.Any(sale => sale == null))
         {
             throw new InvalidDataException(
@@ -75,6 +84,7 @@
             );
         }
 
+        // Verifica se existem códigos de venda duplicados.
         if (saleList.GroupBy(sale => sale.SaleId)
                     .Any(group => group.Count() > 1))
         {
@@ -83,18 +93,18 @@
             );
         }
 
-        // Valida todas as vendas antes de gravar os arquivos.
+        // Valida todas as vendas antes de gravar.
         foreach (Sale sale in saleList)
         {
             sale.Validate();
         }
 
-        // Reúne todos os itens de todas as vendas.
+        // Reúne todos os itens das vendas.
         List<SaleItem> items = saleList
             .SelectMany(sale => sale.Items)
             .ToList();
 
-        // Grava os itens e depois os dados principais das vendas.
+        // Grava os itens e os dados principais das vendas.
         _itemRepository.SaveAll(items);
         _saleRepository.SaveAll(saleList);
     }
@@ -111,7 +121,9 @@
 
         // Retorna false caso a venda não exista.
         if (sale == null)
+        {
             return false;
+        }
 
         // Remove a venda da lista.
         sales.Remove(sale);

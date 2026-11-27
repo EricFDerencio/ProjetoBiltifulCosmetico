@@ -1,4 +1,5 @@
-﻿using BiltifulCosmetico.Utils;
+﻿using BiltifulCosmetico.Services;
+using BiltifulCosmetico.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -58,6 +59,270 @@ namespace BiltifulCosmetico.Classes
                     throw new ArgumentException("Situação inválida.");
             }
         }
+
+        public static void MenuCliente()
+        {
+            while (true)
+            {
+                Console.WriteLine("""
+
+            === Clientes ===
+            1 - Cadastrar
+            2 - Consultar por CPF
+            3 - Editar
+            4 - Ativar ou inativar
+            5 - Listar todos
+            6 - Risco
+            0 - Sair
+            """);
+
+                Console.WriteLine("Qual opção você deseja?");
+                string? opcao = Console.ReadLine()?.Trim();
+
+                if (opcao is null or "0")
+                    return;
+
+                try
+                {
+                    switch (opcao)
+                    {
+                        case "1":
+                            {
+                                Console.WriteLine("Qual é o CPF?");
+                                string cpf = Console.ReadLine() ?? "";
+
+                                Console.WriteLine("Qual é o nome?");
+                                string nome = Console.ReadLine() ?? "";
+
+                                Console.WriteLine("Qual é a data de nascimento (ddMMyyyy)?");
+                                string nascimento = Console.ReadLine()?.Trim() ?? "";
+
+                                Console.WriteLine("Qual é o sexo (M/F)?");
+                                string sexo = Console.ReadLine()?.Trim().ToUpperInvariant() ?? "";
+
+                                var cliente = new Customer(nome, cpf, nascimento, sexo[0]);
+
+                                Console.WriteLine(CustomerFile.SaveCustomer(cliente)
+                                    ? "Cliente cadastrado."
+                                    : "Não foi possível cadastrar o cliente.");
+                                break;
+                            }
+
+                        case "2":
+                            {
+                                Console.WriteLine("Qual é o CPF do cliente?");
+                                string cpf = Console.ReadLine() ?? "";
+
+                                string? registro = CustomerFile.FindCustomerByCPF(cpf);
+
+                                if (registro is null)
+                                    Console.WriteLine("Cliente não encontrado.");
+                                else
+                                    Console.WriteLine(new Customer(registro));
+
+                                break;
+                            }
+
+                        case "3":
+                            {
+                                Console.WriteLine("Qual é o CPF do cliente que deseja editar?");
+                                string cpf = Console.ReadLine() ?? "";
+                                string? registro = CustomerFile.FindCustomerByCPF(cpf);
+
+                                if (registro is null)
+                                {
+                                    Console.WriteLine("Cliente não encontrado.");
+                                    break;
+                                }
+
+                                var cliente = new Customer(registro);
+                                Console.WriteLine(cliente);
+                                Console.WriteLine("Pressione Enter para manter o valor atual.");
+
+                                Console.WriteLine("Qual é o novo nome?");
+                                string nome = Console.ReadLine()?.Trim() ?? "";
+
+                                Console.WriteLine("Qual é a nova data de nascimento (ddMMyyyy)?");
+                                string nascimento = Console.ReadLine()?.Trim() ?? "";
+
+                                Console.WriteLine("Qual é o novo sexo (M/F)?");
+                                string sexo = Console.ReadLine()?.Trim().ToUpperInvariant() ?? "";
+
+                                if (sexo is not ("" or "M" or "F"))
+                                {
+                                    Console.WriteLine("Informe M ou F.");
+                                    break;
+                                }
+
+                                if (nome != "")
+                                    cliente.SetName(nome);
+
+                                if (nascimento != "")
+                                    cliente.SetBirthDate(nascimento);
+
+                                if (sexo != "")
+                                    cliente.SetGender(sexo[0]);
+
+                                Console.WriteLine(CustomerFile.UpdateCustomer(cliente)
+                                    ? "Cliente atualizado."
+                                    : "Não foi possível atualizar o cliente.");
+                                break;
+                            }
+
+                        case "4":
+                            {
+                                Console.WriteLine("Qual é o CPF do cliente?");
+                                string cpf = Console.ReadLine() ?? "";
+                                string? registro = CustomerFile.FindCustomerByCPF(cpf);
+
+                                if (registro is null)
+                                {
+                                    Console.WriteLine("Cliente não encontrado.");
+                                    break;
+                                }
+
+                                var cliente = new Customer(registro);
+
+                                Console.WriteLine("Qual é a nova situação? A para ativo ou I para inativo.");
+                                string? situacao = Console.ReadLine()?.Trim().ToUpperInvariant();
+
+                                if (situacao == "A")
+                                    cliente.Activate();
+                                else if (situacao == "I")
+                                    cliente.Deactivate();
+                                else
+                                {
+                                    Console.WriteLine("Situação inválida.");
+                                    break;
+                                }
+
+                                Console.WriteLine(CustomerFile.UpdateCustomer(cliente)
+                                    ? "Situação atualizada."
+                                    : "Não foi possível atualizar a situação.");
+                                break;
+                            }
+
+                        /*case "5":
+                            {
+                                string[] registros = CustomerFile.ReadActiveCustomers();
+
+                                if (registros.Length == 0)
+                                {
+                                    Console.WriteLine("Nenhum cliente cadastrado.");
+                                    break;
+                                }
+
+                                for (int i = 0; i < registros.Length; i++)
+                                {
+                                    var cliente = new Customer(registros[i]);
+                                    Console.WriteLine($"\nCliente {i + 1} de {registros.Length}");
+                                    Console.WriteLine(cliente);
+                                }
+
+                                break;
+                            }*/
+
+                        case "6":
+                            MenuRisco();
+                            break;
+
+                        default:
+                            Console.WriteLine("Opção inválida.");
+                            break;
+                    }
+                }
+                catch (Exception erro) when (
+                    erro is ArgumentException ||
+                    erro is FormatException ||
+                    erro is IOException ||
+                    erro is InvalidDataException ||
+                    erro is UnauthorizedAccessException)
+                {
+                    Console.WriteLine(erro.Message);
+                }
+            }
+        }
+
+        private static void MenuRisco()
+        {
+            var repositorio = new RiskFileRepository();
+
+            while (true)
+            {
+                Console.WriteLine("""
+
+            === Risco ===
+            1 - Inserir CPF
+            2 - Retirar CPF
+            3 - Consultar CPF
+            0 - Voltar
+            """);
+
+                Console.WriteLine("Qual opção você deseja?");
+                string? opcao = Console.ReadLine()?.Trim();
+
+                if (opcao is null or "0")
+                    return;
+
+                try
+                {
+                    switch (opcao)
+                    {
+                        case "1":
+                            {
+                                Console.WriteLine("Qual CPF deseja inserir na lista de risco?");
+                                string cpf = Console.ReadLine() ?? "";
+
+                                Console.WriteLine(CustomerFile.SaveRisk(cpf)
+                                    ? "CPF inserido na lista de risco."
+                                    : "Não foi possível inserir o CPF.");
+                                break;
+                            }
+
+                        case "2":
+                            {
+                                Console.WriteLine("Qual CPF deseja retirar da lista de risco?");
+                                string cpf = Console.ReadLine() ?? "";
+
+                                Console.WriteLine(CustomerFile.RemoveRisk(cpf)
+                                    ? "CPF retirado da lista de risco."
+                                    : "Não foi possível retirar o CPF.");
+                                break;
+                            }
+
+                        case "3":
+                            {
+                                Console.WriteLine("Qual CPF deseja consultar?");
+                                string cpf = Console.ReadLine()?.Trim() ?? "";
+
+                                bool estaEmRisco = repositorio.IsCpfAtRisk(cpf);
+
+                                Console.WriteLine(estaEmRisco
+                                    ? "CPF consta na lista de risco."
+                                    : "CPF não consta na lista de risco.");
+                                break;
+                            }
+
+                        default:
+                            Console.WriteLine("Opção inválida.");
+                            break;
+                    }
+                }
+                catch (FileNotFoundException)
+                {
+                    Console.WriteLine("O arquivo Risco.dat ainda não foi criado.");
+                }
+                catch (Exception erro) when (
+                    erro is ArgumentException ||
+                    erro is IOException ||
+                    erro is InvalidDataException ||
+                    erro is UnauthorizedAccessException)
+                {
+                    Console.WriteLine(erro.Message);
+                }
+            }
+        }
+
         public void Activate()
         {
             Situation = ESituation.Active;
@@ -66,11 +331,6 @@ namespace BiltifulCosmetico.Classes
         public void Deactivate()
         {
             Situation = ESituation.Inactive;
-        }
-
-        public void UpdateLastSell()
-        {
-            LastPurchase = DateOnly.FromDateTime(DateTime.Today);
         }
 
         public bool SetGender(char gender)

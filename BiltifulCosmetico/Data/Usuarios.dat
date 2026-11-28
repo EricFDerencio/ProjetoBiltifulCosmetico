@@ -1,0 +1,5 @@
+1;Administrador;admin;admin123;ADMIN;A
+2;Operador da Producao;producao;prod123;PRODUCAO;A
+3;Operador de Vendas;vendas;vend123;VENDAS;A
+4;Operador de Compras;compras;comp123;COMPRAS;A
+5;Usuario Inativo;inativo;teste123;VENDAS;I
